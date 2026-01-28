@@ -1,0 +1,89 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Dev (WSL/Linux/Windows)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PLATFORM_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
+      "name": "asan",
+      "inherits": "dev",
+      "displayName": "Debug + ASan/UBSan (GCC/Clang)",
+      "cacheVariables": {
+        "PLATFORM_ENABLE_SANITIZERS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "dev",
+      "displayName": "Release",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "cuda",
+      "inherits": "release",
+      "displayName": "Release + CUDA",
+      "cacheVariables": {
+        "PLATFORM_ENABLE_CUDA": "ON"
+      }
+    },
+    {
+      "name": "aarch64",
+      "inherits": "release",
+      "displayName": "Release cross aarch64",
+      "binaryDir": "${sourceDir}/build/aarch64",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/aarch64-linux-gnu.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "aarch64",
+      "configurePreset": "aarch64"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": {"outputOnFailure": true}
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {"outputOnFailure": true}
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+build/
+.cache/
+.vscode/
+.idea/
+artifacts/
+*.swp
+*.svg
+*.gz

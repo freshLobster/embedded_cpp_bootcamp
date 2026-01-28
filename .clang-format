@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AllowShortFunctionsOnASingleLine: Empty
+ColumnLimit: 120
+NamespaceIndentation: All
+AlignConsecutiveAssignments: true
+SortIncludes: true
+IncludeBlocks: Regroup
