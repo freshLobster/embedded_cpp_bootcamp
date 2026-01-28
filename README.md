@@ -2,8 +2,8 @@ I used GPT5.1-Codex-Max to create this rigorous course in advanced C++ for embed
 Contributions and edits are welcome and encouraged. I would love to have collaborators on these training courses. I will be actively maintaining and updating this repo. If you find 
 any errors or bugs or anything else, please feel free to email me at <aidanseine@gmail.com> 
 
-The full training course is laid out in <COURSE.md>
-with additional notes in <STYLE.md>
+The full training course is laid out in [COURSE](COURSE.md)
+with additional notes in [STYLE](STYLE.md)
 
 # platform_core_training
 
