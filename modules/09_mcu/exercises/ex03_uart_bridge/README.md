@@ -1,17 +1,15 @@
 # 09_mcu - ex03_uart_bridge
 
 ## 1) Title + Mission
-Mission: Implement a UART frame encoder/decoder with a simple checksum in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a UART bridge framing format with checksum verification to guard against corrupt payloads.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 2) What you are building (plain English)
-You are building a UART frame encoder/decoder with a simple checksum. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a frame checksum and parser that can detect corrupted UART payloads before they enter the system.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-MCU firmware often depends on small, deterministic protocols and race-free shared state. This exercise builds that discipline in a controlled host environment.
-
+Embedded links are noisy; a checksum provides a cheap, measurable integrity check before higher-level processing.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 4) Concepts (short lecture)
-UART framing needs integrity checks to avoid propagating corrupted data. A simple checksum protects short frames and is easy to verify. This exercise implements that bridge logic.
+The Internet checksum is a widely used integrity check technique and provides a clear model for checksum computation.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 
+UART-based workflows require framing and integrity checks to make serial links reliable during bring-up and testing.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

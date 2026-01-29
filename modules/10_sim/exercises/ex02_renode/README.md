@@ -1,17 +1,15 @@
 # 10_sim - ex02_renode
 
 ## 1) Title + Mission
-Mission: Implement a parser that counts peripheral lines in Renode logs in a self-contained exercise that builds and tests locally.
-
+Mission: Parse Renode logs to validate peripheral models and boot sequences in simulation.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
 ## 2) What you are building (plain English)
-You are building a parser that counts peripheral lines in Renode logs. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a log parser that identifies peripheral enumeration and boot status markers in a Renode simulation.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Simulation is only useful when you can automatically detect success or failure. This exercise turns logs into deterministic checks that can run in CI.
-
+Renode-style virtual development accelerates firmware iteration by providing repeatable, scriptable system tests.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
 ## 4) Concepts (short lecture)
-Simulation logs often include structured text describing devices. Counting expected peripherals is a basic validation step. This exercise parses and counts those lines.
+Renode is a virtual development tool for multi-node embedded networks, enabling scalable testing without physical hardware.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
 
+Structured log parsing turns simulation outputs into deterministic test signals for CI pipelines.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

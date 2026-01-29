@@ -1,17 +1,15 @@
 # 06_debugging - ex01_asan
 
 ## 1) Title + Mission
-Mission: Implement a bounds-checked buffer to avoid out-of-bounds writes in a self-contained exercise that builds and tests locally.
-
+Mission: Remove out-of-bounds behavior and validate the fix with AddressSanitizer.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 ## 2) What you are building (plain English)
-You are building a bounds-checked buffer to avoid out-of-bounds writes. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a bounds-checked buffer and validating it with ASan so memory errors are eliminated from the hot path.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Debugging tools only help when code paths are deterministic. This exercise builds a small target designed for sanitizer and debugger workflows.
-
+Memory safety defects are catastrophic in embedded systems; ASan makes them visible during development instead of in the field.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 ## 4) Concepts (short lecture)
-Memory bugs are common in low-level systems. Adding explicit bounds checks and RAII ownership reduces the risk of use-after-free or buffer overflow. This exercise gives a clean target for AddressSanitizer.
+AddressSanitizer is a fast memory error detector that instruments code to catch out-of-bounds and use-after-free defects.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 
+Making memory errors reproducible in tests is a prerequisite for hardening safety-critical codebases.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

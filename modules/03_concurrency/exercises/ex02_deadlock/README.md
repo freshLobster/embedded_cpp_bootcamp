@@ -1,17 +1,15 @@
 # 03_concurrency - ex02_deadlock
 
 ## 1) Title + Mission
-Mission: Implement a deadlock-free transfer between two accounts using scoped locking in a self-contained exercise that builds and tests locally.
-
+Mission: Implement deadlock-free transfers by acquiring multiple mutexes safely with a scoped lock.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
 ## 2) What you are building (plain English)
-You are building a deadlock-free transfer between two accounts using scoped locking. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a transfer function that locks two accounts without deadlock, using a single scoped lock to acquire both mutexes consistently.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Concurrency bugs are a common source of safety failures in autonomy systems. This exercise forces you to encode the synchronization strategy directly in code and validate it with tests.
-
+Deadlocks halt autonomy pipelines under load; structured lock acquisition makes the failure mode impossible rather than unlikely.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
 ## 4) Concepts (short lecture)
-Deadlocks are often caused by inconsistent lock ordering. std::scoped_lock lets you lock multiple mutexes atomically to avoid ordering bugs. The exercise models classic resource transfer and enforces safe locking.
+std::scoped_lock acquires multiple mutexes and releases them on scope exit, preventing common deadlock patterns when multiple locks are needed.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
 
+Lock ownership should be explicit and scoped, which aligns with RAII principles and makes locking behavior easier to audit.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

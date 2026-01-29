@@ -1,17 +1,15 @@
 # 05_scheduling - ex01_latency_budget
 
 ## 1) Title + Mission
-Mission: Implement a latency statistics calculator that computes p50 and p95 in a self-contained exercise that builds and tests locally.
-
+Mission: Compute latency statistics from monotonic timestamps and validate them against a budget.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 ## 2) What you are building (plain English)
-You are building a latency statistics calculator that computes p50 and p95. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small stats utility that turns timestamp pairs into durations and aggregates them into latency metrics.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Scheduling and timing are central to autonomy pipelines. This exercise forces you to encode timing behavior in code and validate it with deterministic tests.
-
+Latency budgets and jitter bounds are contractual requirements in safety-critical software and require monotonic time sources.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 4) Concepts (short lecture)
-Latency budgets are evaluated with percentile statistics rather than averages. Computing p50/p95 from samples provides a clearer view of tail behavior. This exercise builds a deterministic stats function.
+std::chrono::duration represents time intervals and is the correct abstraction for expressing latencies and budgets.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 
+std::chrono::steady_clock provides a monotonic time base suitable for measuring elapsed time reliably.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

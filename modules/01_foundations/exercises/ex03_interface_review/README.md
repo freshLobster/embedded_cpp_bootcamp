@@ -1,17 +1,15 @@
 # 01_foundations - ex03_interface_review
 
 ## 1) Title + Mission
-Mission: Implement a move-only buffer type that follows Rule of 5/0 and avoids accidental copying in a self-contained exercise that builds and tests locally.
-
+Mission: Refactor an owning buffer interface to follow the rule of three/five/zero and expose a stable, safe API surface.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 ## 2) What you are building (plain English)
-You are building a move-only buffer type that follows Rule of 5/0 and avoids accidental copying. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small owning buffer type whose copy/move behavior is explicit and safe, with clear semantics for resource ownership and transfer.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Real systems fail when ownership, concurrency, or timing assumptions are wrong. This exercise forces you to encode the concept directly in code so the build and tests prove the behavior instead of relying on informal reasoning.
-
+Large robotics codebases live or die by interface hygiene; ambiguous ownership and missing move semantics lead to leaks and latent correctness bugs.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 ## 4) Concepts (short lecture)
-Interfaces that own resources must make ownership explicit. Deleting copy operations and implementing move semantics prevents expensive or unsafe copies. The Rule of 0/5 ensures that ownership, cleanup, and transfer are encoded in the type rather than in comments.
+The rule of three/five/zero describes when a type that manages resources must explicitly define copy, move, and destruction behavior to prevent double-free or leaks.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 
+RAII ownership paired with clear move semantics creates stable interfaces that are easy to reason about under refactoring and high load.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 05_scheduling - ex03_priority
 
 ## 1) Title + Mission
-Mission: Implement a priority task queue that runs higher-priority work first in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a priority-based dispatcher using a priority_queue to select the next task.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
 ## 2) What you are building (plain English)
-You are building a priority task queue that runs higher-priority work first. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a dispatcher that orders tasks by priority, ensuring higher-priority work is executed first.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Scheduling and timing are central to autonomy pipelines. This exercise forces you to encode timing behavior in code and validate it with deterministic tests.
-
+Priority scheduling is a standard control-system tactic for meeting deadlines when multiple tasks compete for CPU time.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
 ## 4) Concepts (short lecture)
-Priority scheduling determines which work gets CPU time under load. A priority queue models this decision and makes ordering explicit. This exercise implements a small deterministic scheduler.
+priority_queue is a container adaptor that provides priority-ordered access to elements based on a comparator.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
 
+When latency budgets differ across tasks, explicit priority ordering provides a deterministic scheduling policy.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

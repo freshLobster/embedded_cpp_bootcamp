@@ -1,17 +1,15 @@
 # 12_cuda_perf - ex01_nsys
 
 ## 1) Title + Mission
-Mission: Implement a profiler marker generator for Nsight Systems workflows in a self-contained exercise that builds and tests locally.
-
+Mission: Insert profiling markers and prepare a workload for GPU timeline analysis.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 2) What you are building (plain English)
-You are building a profiler marker generator for Nsight Systems workflows. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small workload that emits markers suitable for timeline profiling and later correlation with performance measurements.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-CUDA performance work relies on explicit markers and metrics. This exercise creates a deterministic baseline for those workflows.
-
+CUDA performance tuning starts with a traceable timeline; markers let you correlate algorithm stages with GPU activity.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 4) Concepts (short lecture)
-Profiler markers make timelines readable and correlate code regions with performance. Generating a simple marker string models where you would insert NVTX ranges. This exercise creates that marker output.
+The CUDA Best Practices guide highlights the importance of identifying and optimizing performance-critical regions in GPU workloads.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 
+Profiling markers provide the structure needed to compare runs and validate improvements across revisions.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

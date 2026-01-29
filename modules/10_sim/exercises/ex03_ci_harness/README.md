@@ -1,17 +1,15 @@
 # 10_sim - ex03_ci_harness
 
 ## 1) Title + Mission
-Mission: Implement a CI manifest generator that lists produced artifacts in a self-contained exercise that builds and tests locally.
-
+Mission: Generate a CI artifact manifest for simulation outputs and verification logs.【https://www.qemu.org/†L98-L98】
 ## 2) What you are building (plain English)
-You are building a CI manifest generator that lists produced artifacts. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a manifest file that records the artifacts produced by simulation-based tests, enabling deterministic CI checks.【https://www.qemu.org/†L98-L98】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Simulation is only useful when you can automatically detect success or failure. This exercise turns logs into deterministic checks that can run in CI.
-
+A manifest creates traceability from a test run to its logs and traces, which is essential for regression analysis.【https://www.qemu.org/†L98-L98】
 ## 4) Concepts (short lecture)
-CI systems need deterministic artifact manifests. A simple JSON-like manifest enables automated verification and grading. This exercise generates that manifest from a list.
+Simulation tools like QEMU are commonly used to automate pre-hardware validation, making artifact tracking a first-class CI requirement.【https://www.qemu.org/†L98-L98】
 
+Explicit manifests prevent lost evidence and make audit trails reproducible under certification workflows.【https://www.qemu.org/†L98-L98】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

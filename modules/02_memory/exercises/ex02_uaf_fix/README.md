@@ -1,17 +1,15 @@
 # 02_memory - ex02_uaf_fix
 
 ## 1) Title + Mission
-Mission: Implement a safe factory that returns owned data without use-after-free in a self-contained exercise that builds and tests locally.
-
+Mission: Fix a use-after-free pattern by enforcing correct ownership and lifetime in the API you implement.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
 ## 2) What you are building (plain English)
-You are building a safe factory that returns owned data without use-after-free. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a safe factory and access path for a payload so that consumers never access objects after their lifetime ends.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Memory behavior must be deterministic in embedded systems. This exercise forces you to encode ownership and allocation behavior directly in code and to verify it with tests.
-
+Use-after-free is undefined behavior with catastrophic consequences; eliminating it requires explicit ownership and a correct mental model of object lifetime.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
 ## 4) Concepts (short lecture)
-Use-after-free occurs when a pointer outlives the object it refers to. Returning owning smart pointers (std::unique_ptr) makes the lifetime explicit and prevents dangling references. The exercise forces you to model ownership as part of the API.
+C++ object lifetimes begin and end at precise points, and accessing an object after its lifetime ends is undefined behavior that can surface as rare field failures.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
 
+AddressSanitizer is a practical tool that detects memory errors like use-after-free during testing, making lifetime bugs observable early.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

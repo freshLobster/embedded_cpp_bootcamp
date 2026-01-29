@@ -1,17 +1,15 @@
 # 08_cross_deploy - ex02_deploy
 
 ## 1) Title + Mission
-Mission: Implement a deploy command builder for scp/ssh in a self-contained exercise that builds and tests locally.
-
+Mission: Construct a safe deploy command that uses scp over ssh to transfer binaries.【https://man.openbsd.org/scp†L180-L183】【https://man.openbsd.org/ssh†L202-L204】
 ## 2) What you are building (plain English)
-You are building a deploy command builder for scp/ssh. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a deploy command generator that uses scp for file transfer and ssh for remote execution semantics.【https://man.openbsd.org/scp†L180-L183】【https://man.openbsd.org/ssh†L202-L204】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Cross-deployment workflows must be deterministic and auditable. This exercise makes the target explicit in code and validates it with tests.
-
+Secure transfer is non-negotiable in defense environments; using scp over ssh preserves confidentiality and integrity.【https://man.openbsd.org/scp†L180-L183】【https://man.openbsd.org/ssh†L202-L204】
 ## 4) Concepts (short lecture)
-Deployment steps should be deterministic and scriptable. Constructing explicit scp/ssh commands makes the data flow obvious and testable. This exercise builds a predictable deploy string.
+scp uses the SFTP protocol over an ssh connection, inheriting ssh authentication and security properties.【https://man.openbsd.org/scp†L180-L183】
 
+ssh provides secure encrypted communications between hosts, which is the foundation for safe remote deployment.【https://man.openbsd.org/ssh†L202-L204】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

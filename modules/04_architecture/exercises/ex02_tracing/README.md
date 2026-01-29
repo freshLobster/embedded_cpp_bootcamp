@@ -1,17 +1,15 @@
 # 04_architecture - ex02_tracing
 
 ## 1) Title + Mission
-Mission: Implement a lightweight tracer that records span durations with RAII in a self-contained exercise that builds and tests locally.
-
+Mission: Implement tracing spans with monotonic timestamps to support deterministic latency analysis.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 2) What you are building (plain English)
-You are building a lightweight tracer that records span durations with RAII. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a span type that records start/stop timestamps using a monotonic clock so elapsed durations remain stable across runs.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-System architecture depends on well-defined contracts and observability. This exercise forces you to encode an explicit architectural behavior and validate it with deterministic tests.
-
+Tracing is only useful if timestamps are monotonic and comparable; otherwise latency analysis becomes noisy and misleading.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 4) Concepts (short lecture)
-Tracing turns execution into structured timing data. RAII spans make timing deterministic by starting on construction and stopping on destruction. This exercise builds a minimal tracer that records names and durations.
+std::chrono::steady_clock is monotonic, so its time points never go backward and are appropriate for latency measurement.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 
+std::chrono::duration represents a time interval, which is the correct type for expressing span length and budget calculations.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

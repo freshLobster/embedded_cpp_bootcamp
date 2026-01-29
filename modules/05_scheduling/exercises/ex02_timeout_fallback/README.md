@@ -1,17 +1,15 @@
 # 05_scheduling - ex02_timeout_fallback
 
 ## 1) Title + Mission
-Mission: Implement a timeout wrapper that returns a fallback value when work exceeds a deadline in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a timeout wrapper that uses wait_for and returns a fallback on expiry.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
 ## 2) What you are building (plain English)
-You are building a timeout wrapper that returns a fallback value when work exceeds a deadline. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a wrapper around an asynchronous task that waits up to a timeout duration and returns a fallback result if the task is too slow.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Scheduling and timing are central to autonomy pipelines. This exercise forces you to encode timing behavior in code and validate it with deterministic tests.
-
+Timeouts bound tail latency in control systems and prevent upstream stalls from cascading into missed deadlines.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
 ## 4) Concepts (short lecture)
-Timeouts are a core fault-handling mechanism in real-time-ish systems. A wrapper that enforces a deadline and returns a fallback keeps the system responsive. This exercise uses std::async and wait_for to model that behavior.
+future::wait_for blocks until a specified timeout duration has elapsed or the result becomes available, which is the basis for timeout logic.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
 
+Timeout logic is a first-class part of real-time scheduling because it allows controlled degradation under overload.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

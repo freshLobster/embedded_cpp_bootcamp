@@ -1,17 +1,15 @@
 # 08_cross_deploy - ex01_cross_build
 
 ## 1) Title + Mission
-Mission: Implement a function that reports the compile-time target architecture in a self-contained exercise that builds and tests locally.
-
+Mission: Configure a cross-build using a CMake toolchain file and verify the target architecture settings.【https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html†L71-L71】
 ## 2) What you are building (plain English)
-You are building a function that reports the compile-time target architecture. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small utility that reports the target architecture, driven by a toolchain file that configures cross-compilation.【https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html†L71-L71】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Cross-deployment workflows must be deterministic and auditable. This exercise makes the target explicit in code and validates it with tests.
-
+Cross-compiling is mandatory for embedded deployment; a correct toolchain file is the contract between your build and the target.【https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html†L71-L71】
 ## 4) Concepts (short lecture)
-Cross-compilation means the target architecture differs from the host. Compile-time macros let you record which target you built for. This exercise makes that explicit in code.
+CMake uses a toolchain file to define the compiler and target settings for cross-compilation workflows.【https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html†L71-L71】
 
+Validating the reported target architecture prevents subtle deployment failures on SBC or MCU targets.【https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html†L71-L71】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

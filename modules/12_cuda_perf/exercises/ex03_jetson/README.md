@@ -1,17 +1,15 @@
 # 12_cuda_perf - ex03_jetson
 
 ## 1) Title + Mission
-Mission: Implement a helper that reports likely bottlenecks for Jetson-class systems in a self-contained exercise that builds and tests locally.
-
+Mission: Identify Jetson-class bottlenecks and separate CPU, GPU, and IO contributors.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 2) What you are building (plain English)
-You are building a helper that reports likely bottlenecks for Jetson-class systems. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a bottleneck classifier that labels CPU, GPU, and IO constraints to guide embedded GPU optimization work.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-CUDA performance work relies on explicit markers and metrics. This exercise creates a deterministic baseline for those workflows.
-
+Embedded GPUs have tight memory and bandwidth limits; you must reason about where the pipeline saturates before optimization.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 ## 4) Concepts (short lecture)
-Jetson-class systems are constrained by CPU, GPU, and IO bottlenecks. Encoding bottleneck analysis in a small helper forces you to think about system-level tradeoffs. This exercise returns a list of bottlenecks based on inputs.
+The CUDA programming guide documents a distinct memory hierarchy that strongly influences performance on embedded-class GPUs.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 
+The Best Practices guide emphasizes performance analysis and optimization workflows, which inform bottleneck classification.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

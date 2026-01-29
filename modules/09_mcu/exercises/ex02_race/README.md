@@ -1,17 +1,15 @@
 # 09_mcu - ex02_race
 
 ## 1) Title + Mission
-Mission: Implement a shared counter updated safely by multiple threads in a self-contained exercise that builds and tests locally.
-
+Mission: Fix a shared-counter race using atomic operations suitable for interrupt-driven MCU code.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 2) What you are building (plain English)
-You are building a shared counter updated safely by multiple threads. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a counter that remains correct when updated from multiple contexts, using atomic operations to prevent races.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-MCU firmware often depends on small, deterministic protocols and race-free shared state. This exercise builds that discipline in a controlled host environment.
-
+MCU firmware frequently mixes ISR and main-loop updates; atomic counters prevent silent corruption in those paths.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 4) Concepts (short lecture)
-ISR/task races are the MCU version of data races. Protecting shared counters with atomics or mutexes keeps telemetry consistent. This exercise models that safety on the host.
+std::atomic provides atomic operations for integral types, which is the simplest correct primitive for shared counters.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 
+Even in embedded firmware, explicit concurrency primitives make behavior deterministic and reviewable.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

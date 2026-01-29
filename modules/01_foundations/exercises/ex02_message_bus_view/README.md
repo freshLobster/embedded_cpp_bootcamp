@@ -1,17 +1,15 @@
 # 01_foundations - ex02_message_bus_view
 
 ## 1) Title + Mission
-Mission: Implement a const-correct read-only view over a message bus subscriber list in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a const-correct, non-owning bus view that exposes subscribers without copying or allowing mutation.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 2) What you are building (plain English)
-You are building a const-correct read-only view over a message bus subscriber list. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a read-only view type that provides non-owning access to subscriber metadata, so callers can inspect without taking ownership or modifying the underlying storage.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Real systems fail when ownership, concurrency, or timing assumptions are wrong. This exercise forces you to encode the concept directly in code so the build and tests prove the behavior instead of relying on informal reasoning.
-
+In autonomy pipelines, passing views instead of owning copies preserves performance and keeps ownership boundaries explicit, which reduces accidental allocations and data races.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 4) Concepts (short lecture)
-Const-correct views let you expose internal state for inspection without allowing mutation. A bus view should provide indexed access and size information while keeping ownership with the bus. This enforces interface hygiene and keeps the reader side from accidentally changing system wiring.
+Non-owning view types such as span or string_view describe contiguous ranges without owning them, enabling zero-copy inspection when you only need read access.【https://en.cppreference.com/w/cpp/container/span†L400-L400】【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
 
+Clear ownership boundaries improve modular architecture because the producer remains responsible for data lifetime while consumers use read-only views.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

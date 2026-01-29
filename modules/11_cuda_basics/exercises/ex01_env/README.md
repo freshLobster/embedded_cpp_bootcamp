@@ -1,17 +1,15 @@
 # 11_cuda_basics - ex01_env
 
 ## 1) Title + Mission
-Mission: Implement a CUDA environment detector based on compile-time flags in a self-contained exercise that builds and tests locally.
-
+Mission: Detect CUDA availability and report the environment readiness for GPU execution.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 2) What you are building (plain English)
-You are building a CUDA environment detector based on compile-time flags. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building an environment probe that determines whether the CUDA programming model can be used on the current system.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-GPU work requires a clear CPU baseline and explicit resource ownership. This exercise enforces those practices even when CUDA is not available.
-
+GPU code must fail fast when toolchains or drivers are missing; explicit detection avoids silent fallbacks.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 4) Concepts (short lecture)
-CUDA availability should be detectable at build time so code can choose CPU/GPU paths. A simple detector keeps logic explicit and testable. This exercise implements that switch.
+The CUDA programming guide defines the programming model and execution environment for GPU kernels, which drives environment requirements.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 
+Validating the environment early prevents wasted profiling time on configurations that cannot run GPU code.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 11_cuda_basics - ex03_raii_buffer
 
 ## 1) Title + Mission
-Mission: Implement a RAII buffer wrapper that is move-only and owns its memory in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a RAII wrapper for device buffers to manage GPU memory deterministically.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 ## 2) What you are building (plain English)
-You are building a RAII buffer wrapper that is move-only and owns its memory. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small RAII object that owns device memory and ensures cleanup occurs exactly once.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-GPU work requires a clear CPU baseline and explicit resource ownership. This exercise enforces those practices even when CUDA is not available.
-
+GPU memory is a scarce resource on embedded-class devices; deterministic cleanup avoids leaks and fragmentation.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 ## 4) Concepts (short lecture)
-CUDA resources must be released deterministically. A move-only RAII wrapper models ownership transfer and prevents double-free. This exercise implements that wrapper without CUDA dependencies.
+The CUDA programming guide documents a distinct memory hierarchy, so resource ownership must be explicit and deterministic in C++ wrappers.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 
+RAII-style wrappers are the standard C++ technique to bind resource lifetime to scope and prevent leaks.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

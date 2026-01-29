@@ -1,17 +1,15 @@
 # 02_memory - ex01_pmr_queue
 
 ## 1) Title + Mission
-Mission: Implement a queue backed by std::pmr::vector using a provided polymorphic allocator in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a queue that uses polymorphic memory resources for allocator control and bounded allocation behavior.【https://en.cppreference.com/w/cpp/memory/memory_resource†L463-L463】【https://en.cppreference.com/w/cpp/memory/polymorphic_allocator†L478-L478】
 ## 2) What you are building (plain English)
-You are building a queue backed by std::pmr::vector using a provided polymorphic allocator. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small queue whose storage is supplied by a memory_resource, allowing you to swap allocation strategy without changing the container type.【https://en.cppreference.com/w/cpp/memory/memory_resource†L463-L463】【https://en.cppreference.com/w/cpp/memory/polymorphic_allocator†L478-L478】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Memory behavior must be deterministic in embedded systems. This exercise forces you to encode ownership and allocation behavior directly in code and to verify it with tests.
-
+Allocator control is critical in embedded systems where you must bound memory growth; PMR lets you enforce those constraints without rewriting your data structures.【https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource†L485-L485】
 ## 4) Concepts (short lecture)
-Polymorphic allocators let you control where allocations come from without changing container code. Using std::pmr allows you to swap between heap, monotonic buffers, or arena allocators while keeping the same interface. This is crucial for bounded-memory systems.
+std::pmr::memory_resource provides an abstract interface for allocation behavior, and polymorphic_allocator routes allocations through that interface.【https://en.cppreference.com/w/cpp/memory/memory_resource†L463-L463】【https://en.cppreference.com/w/cpp/memory/polymorphic_allocator†L478-L478】
 
+monotonic_buffer_resource is a specialized resource that releases allocations only when destroyed, which is ideal for bounded, phase-based allocations.【https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource†L485-L485】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

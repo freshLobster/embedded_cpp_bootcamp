@@ -1,17 +1,15 @@
 # 07_perf - ex02_flamegraph
 
 ## 1) Title + Mission
-Mission: Implement a multi-level call chain to generate a meaningful stack profile in a self-contained exercise that builds and tests locally.
-
+Mission: Build a call-stack-heavy workload and generate a flame graph to visualize hot paths.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
 ## 2) What you are building (plain English)
-You are building a multi-level call chain to generate a meaningful stack profile. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a function chain that produces a predictable call stack so profiling output maps clearly to code structure.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Performance work requires deterministic baselines and repeatable tests. This exercise gives you a small, measurable workload to reason about.
-
+Flame graphs provide an intuitive view of where CPU time is spent, making them a standard tool for systems performance work.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
 ## 4) Concepts (short lecture)
-Flamegraphs visualize where time is spent in call stacks. A layered call chain produces a representative profile for tooling practice. This exercise builds such a chain and keeps output deterministic.
+Flame graphs are a visualization technique that summarizes stack traces to highlight the dominant costs in a workload.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
 
+A repeatable call structure lets you verify your profiling pipeline before applying it to production workloads.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 03_concurrency - ex03_clean_shutdown
 
 ## 1) Title + Mission
-Mission: Implement a worker thread that drains a task queue and stops cleanly on request in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a worker thread that drains work and shuts down cleanly using condition variables and cooperative cancellation.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
 ## 2) What you are building (plain English)
-You are building a worker thread that drains a task queue and stops cleanly on request. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a worker that blocks on a condition variable, processes tasks, and exits when a stop request is issued.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Concurrency bugs are a common source of safety failures in autonomy systems. This exercise forces you to encode the synchronization strategy directly in code and validate it with tests.
-
+Safe shutdown is as important as fast startup; autonomous systems must stop cleanly without losing data or leaving threads running.【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
 ## 4) Concepts (short lecture)
-Clean shutdown means threads stop deterministically without losing work or hanging. Using std::jthread with stop_token and a condition variable provides cooperative cancellation. The exercise models a small pipeline stage with a shutdown path.
+std::condition_variable is a synchronization primitive used with a mutex to block and wake threads when work becomes available.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 
+std::jthread represents a joinable thread of execution and integrates with cooperative stop mechanisms for clean shutdown.【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 07_perf - ex03_perf_regression
 
 ## 1) Title + Mission
-Mission: Implement a string-join routine that avoids unnecessary reallocations in a self-contained exercise that builds and tests locally.
-
+Mission: Fix an intentional performance regression by reducing avoidable allocations and measuring the improvement.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 2) What you are building (plain English)
-You are building a string-join routine that avoids unnecessary reallocations. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a string-join function that avoids repeated reallocations, then measuring its impact relative to a naive version.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Performance work requires deterministic baselines and repeatable tests. This exercise gives you a small, measurable workload to reason about.
-
+Small allocation patterns add up in tight loops; measuring and eliminating them is a core performance engineering skill.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 ## 4) Concepts (short lecture)
-Performance regressions often come from accidental copies or repeated allocations. Reserving capacity and building strings efficiently reduces allocator pressure. This exercise fixes a known regression pattern.
+perf provides the measurement loop needed to confirm that a refactor actually improves runtime performance.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 
+Heap profilers like Massif make allocation-heavy code paths visible, helping you target regressions precisely.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 04_architecture - ex03_backpressure
 
 ## 1) Title + Mission
-Mission: Implement a bounded queue that enforces backpressure by rejecting pushes when full in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a bounded queue that applies backpressure using a condition variable.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 ## 2) What you are building (plain English)
-You are building a bounded queue that enforces backpressure by rejecting pushes when full. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a fixed-capacity queue that blocks producers when full and wakes consumers when items are available.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-System architecture depends on well-defined contracts and observability. This exercise forces you to encode an explicit architectural behavior and validate it with deterministic tests.
-
+Backpressure protects real-time pipelines from overload by forcing producers to respect downstream capacity limits.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 ## 4) Concepts (short lecture)
-Backpressure prevents unbounded memory growth by applying limits at ingestion. A bounded queue should track drops and make rejection explicit. This exercise models a minimal backpressure policy.
+condition_variable lets threads block and wake based on queue state changes, which is essential for bounded producer/consumer designs.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 
+Bounded queues are a core reliability tool because they turn unbounded memory growth into explicit, manageable waiting behavior.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

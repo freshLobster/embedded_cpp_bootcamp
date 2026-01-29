@@ -1,17 +1,15 @@
 # 11_cuda_basics - ex02_cpu_gpu_parity
 
 ## 1) Title + Mission
-Mission: Implement a CPU reference vector add used for parity checks in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a CPU reference path that matches the CUDA programming model for correctness checks.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 2) What you are building (plain English)
-You are building a CPU reference vector add used for parity checks. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a CPU reference implementation of a vector add kernel to validate GPU results against a known-good path.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-GPU work requires a clear CPU baseline and explicit resource ownership. This exercise enforces those practices even when CUDA is not available.
-
+CPU/GPU parity checks are the first line of defense against silent GPU miscomputations in autonomy pipelines.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 ## 4) Concepts (short lecture)
-GPU kernels must match CPU reference behavior. Implementing a clear CPU baseline is the first step toward parity testing. This exercise builds that baseline.
+The CUDA programming guide defines the execution and programming model used by GPU kernels, which is mirrored by a CPU reference path for validation.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L69-L69】
 
+The guide also documents a distinct memory hierarchy, which influences how data is staged between host and device.【https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html†L83-L83】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

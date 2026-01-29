@@ -1,17 +1,15 @@
 # 07_perf - ex01_perf_baseline
 
 ## 1) Title + Mission
-Mission: Implement a dot-product routine to establish a baseline workload in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a deterministic workload and measure it as a performance baseline using perf.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 2) What you are building (plain English)
-You are building a dot-product routine to establish a baseline workload. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small compute kernel whose execution time can be measured repeatably to establish a baseline.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Performance work requires deterministic baselines and repeatable tests. This exercise gives you a small, measurable workload to reason about.
-
+Performance regressions are only visible when you have a baseline; perf provides the measurement framework to create one.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 4) Concepts (short lecture)
-Performance work needs a baseline. A dot product is simple but representative of numeric workloads. This exercise provides a deterministic function you can time and optimize later.
+Linux perf provides a performance analysis framework that lets you measure and attribute CPU costs to code paths.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 
+A baseline measurement creates the reference point needed to detect regressions after refactors or hardware changes.【https://man7.org/linux/man-pages/man1/perf.1.html†L129-L131】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

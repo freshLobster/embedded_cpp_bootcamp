@@ -1,17 +1,15 @@
 # 03_concurrency - ex01_race_repro
 
 ## 1) Title + Mission
-Mission: Implement a thread-safe counter that increments correctly under contention in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a thread-safe counter using atomic operations to eliminate data races under parallel increments.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 2) What you are building (plain English)
-You are building a thread-safe counter that increments correctly under contention. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a counter that remains correct under concurrent updates by multiple threads using atomic operations instead of unsynchronized reads/writes.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Concurrency bugs are a common source of safety failures in autonomy systems. This exercise forces you to encode the synchronization strategy directly in code and validate it with tests.
-
+Data races can silently corrupt state in robotics pipelines; atomics provide a low-level, deterministic fix for simple shared counters.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 4) Concepts (short lecture)
-Data races occur when multiple threads access shared state without synchronization. Using std::atomic or a mutex ensures increments are serialized and observed correctly. This exercise forces correct accounting under concurrent load.
+std::atomic provides atomic operations for integral types, enabling safe concurrent increments without external locking.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 
+When concurrency is simple, atomics are often the cheapest safe synchronization primitive and avoid the overhead of coarse locks.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

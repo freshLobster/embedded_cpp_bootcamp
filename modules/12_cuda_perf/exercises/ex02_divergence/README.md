@@ -1,17 +1,15 @@
 # 12_cuda_perf - ex02_divergence
 
 ## 1) Title + Mission
-Mission: Implement a divergence metric computation from warp masks in a self-contained exercise that builds and tests locally.
-
+Mission: Measure and reduce control-flow divergence in a GPU-style workload.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 2) What you are building (plain English)
-You are building a divergence metric computation from warp masks. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small workload that quantifies branch divergence so you can reason about warp efficiency.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-CUDA performance work relies on explicit markers and metrics. This exercise creates a deterministic baseline for those workflows.
-
+Branch divergence directly reduces throughput on SIMT hardware, making it a first-order performance concern.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 4) Concepts (short lecture)
-Warp divergence reduces SIMD efficiency. Computing average active lanes from masks gives a simple proxy for divergence. This exercise implements that calculation on the CPU.
+The CUDA Best Practices guide includes a dedicated section on branching and divergence, reflecting its importance in GPU performance.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 
+Making divergence visible in a small workload helps you recognize the same pattern in production kernels.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

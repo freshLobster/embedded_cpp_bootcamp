@@ -1,17 +1,15 @@
 # 08_cross_deploy - ex03_latency_on_hw
 
 ## 1) Title + Mission
-Mission: Implement a jitter calculation from sample latencies in a self-contained exercise that builds and tests locally.
-
+Mission: Compute on-hardware jitter statistics from monotonic timestamps.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 2) What you are building (plain English)
-You are building a jitter calculation from sample latencies. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building jitter stats from duration samples to quantify p50/p95/p99 behavior on a deployed target.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Cross-deployment workflows must be deterministic and auditable. This exercise makes the target explicit in code and validates it with tests.
-
+Hardware validation must include tail latency and jitter, which require a monotonic clock for reliable measurement.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 ## 4) Concepts (short lecture)
-On-hardware latency measurements are noisy. Computing min/max/span gives a simple jitter metric for validation. This exercise computes those metrics from samples.
+steady_clock provides a monotonic time base suited for latency/jitter measurement on target devices.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
 
+duration represents time intervals and is the correct unit for computing percentiles and jitter metrics.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

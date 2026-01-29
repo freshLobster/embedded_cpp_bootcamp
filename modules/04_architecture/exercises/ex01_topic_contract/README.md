@@ -1,17 +1,15 @@
 # 04_architecture - ex01_topic_contract
 
 ## 1) Title + Mission
-Mission: Implement a topic-contract parser for name/type/rate strings in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a topic contract view using non-owning string and span types to avoid copies in the hot path.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 2) What you are building (plain English)
-You are building a topic-contract parser for name/type/rate strings. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a small contract parser that accepts non-owning views of bytes and strings, so the contract can be validated without allocating.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-System architecture depends on well-defined contracts and observability. This exercise forces you to encode an explicit architectural behavior and validate it with deterministic tests.
-
+Autonomy middleware moves high-rate data; using views avoids allocations and keeps ownership boundaries explicit across modules.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 4) Concepts (short lecture)
-Architecture contracts define how components communicate. Parsing and validating topic strings at boundaries catches configuration errors early. This exercise models contract validation without pulling in heavy dependencies.
+string_view and span describe contiguous sequences without owning them, which lets you parse and validate data without copying it.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 
+Clear ownership boundaries improve modular architecture because the producer remains responsible for data lifetime while consumers use read-only views.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

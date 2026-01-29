@@ -1,17 +1,15 @@
 # 01_foundations - ex01_scope_guard
 
 ## 1) Title + Mission
-Mission: Implement a RAII scope guard that runs a cleanup callback exactly once on scope exit, with a dismiss option and move-only semantics in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a RAII scope guard that invokes cleanup exactly once on scope exit and supports move-only transfer and explicit dismissal.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 ## 2) What you are building (plain English)
-You are building a RAII scope guard that runs a cleanup callback exactly once on scope exit, with a dismiss option and move-only semantics. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a minimal scope guard type that owns a cleanup action and runs it deterministically when the guard leaves scope, mirroring how critical resources are safely released in C++.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Real systems fail when ownership, concurrency, or timing assumptions are wrong. This exercise forces you to encode the concept directly in code so the build and tests prove the behavior instead of relying on informal reasoning.
-
+Mission-critical software cannot rely on humans to remember cleanup paths; deterministic scope-based cleanup avoids leaks and double-releases even when control flow changes unexpectedly.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 ## 4) Concepts (short lecture)
-RAII ties resource cleanup to scope lifetime so that cleanup is deterministic even when code returns early. A scope guard is the minimal pattern: it stores a callback and invokes it in its destructor unless explicitly dismissed. Move-only ownership prevents double-execution of the cleanup and mirrors how ownership moves between components in embedded pipelines.
+RAII ties resource lifetime to object lifetime so cleanup is automatic and deterministic, which is foundational for safe embedded systems where failure paths are common.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 
+The rule of three/five/zero explains when you must define copy/move/destruction behaviors for resource owners, which directly applies to a move-only scope guard.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

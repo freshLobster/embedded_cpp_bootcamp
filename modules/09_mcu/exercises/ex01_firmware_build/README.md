@@ -1,17 +1,15 @@
 # 09_mcu - ex01_firmware_build
 
 ## 1) Title + Mission
-Mission: Implement a UART-friendly encoding and decoding for sensor samples in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a UART sample framing function suitable for MCU-to-host communication.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 ## 2) What you are building (plain English)
-You are building a UART-friendly encoding and decoding for sensor samples. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a simple encoder that formats sensor samples for UART transport, mirroring how MCU telemetry is emitted.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-MCU firmware often depends on small, deterministic protocols and race-free shared state. This exercise builds that discipline in a controlled host environment.
-
+UART remains a common MCU communication channel; clear framing is required to make logs and sensor streams reliable.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 ## 4) Concepts (short lecture)
-MCU-to-host links often use simple framed text protocols for reliability. Encoding and decoding samples deterministically helps with debug and integration. This exercise builds that tiny protocol.
+ESP-IDF UART documentation describes establishing communication between an ESP32-C3 and other UART devices using the UART driver APIs.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 
+A deterministic frame format is a prerequisite for debugging and validation in embedded bring-up workflows.【https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html†L199-L199】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

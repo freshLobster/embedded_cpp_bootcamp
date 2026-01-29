@@ -1,17 +1,15 @@
 # 10_sim - ex01_qemu
 
 ## 1) Title + Mission
-Mission: Implement a parser that detects successful boot markers in QEMU logs in a self-contained exercise that builds and tests locally.
-
+Mission: Parse QEMU boot logs to verify expected device bring-up in simulation.【https://www.qemu.org/†L98-L98】
 ## 2) What you are building (plain English)
-You are building a parser that detects successful boot markers in QEMU logs. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a log parser that recognizes expected boot markers from a QEMU-emulated target.【https://www.qemu.org/†L98-L98】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Simulation is only useful when you can automatically detect success or failure. This exercise turns logs into deterministic checks that can run in CI.
-
+Simulation enables deterministic reproduction of embedded bring-up issues without hardware in the loop.【https://www.qemu.org/†L98-L98】
 ## 4) Concepts (short lecture)
-Simulation outputs are only useful if you can programmatically verify success. Parsing log markers is the simplest deterministic check. This exercise builds a small parser for that job.
+QEMU is a generic and open source machine emulator and virtualizer, making it a standard tool for embedded simulation.【https://www.qemu.org/†L98-L98】
 
+Parsing boot logs is a practical technique for automated smoke tests in CI and pre-hardware workflows.【https://www.qemu.org/†L98-L98】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

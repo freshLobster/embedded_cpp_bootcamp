@@ -1,17 +1,15 @@
 # 02_memory - ex03_heaptrack
 
 ## 1) Title + Mission
-Mission: Implement a small allocation workload with explicit RAII cleanup to support heap tooling in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a repeatable allocation workload and capture heap profiling artifacts from the run.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 ## 2) What you are building (plain English)
-You are building a small allocation workload with explicit RAII cleanup to support heap tooling. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a deterministic allocation workload and then recording its heap footprint so you can compare runs and reason about memory growth.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Memory behavior must be deterministic in embedded systems. This exercise forces you to encode ownership and allocation behavior directly in code and to verify it with tests.
-
+Heap growth is a reliability risk in long-running autonomy software; profiling shows where memory expands and which patterns cause fragmentation.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 ## 4) Concepts (short lecture)
-Heap tools are only useful if the code uses deterministic ownership. Even a small example should allocate and free in a predictable way so tooling can report clean baselines. This exercise sets up a leak-free workload you can profile with ASan/heaptrack.
+Massif is a heap profiler that measures how much heap memory a program uses, making allocation-heavy paths visible and comparable across runs.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
 
+Allocator strategy and lifetime boundaries determine peak memory, so reproducible workloads are a prerequisite for meaningful profiling.【https://en.cppreference.com/w/cpp/memory/memory_resource†L463-L463】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

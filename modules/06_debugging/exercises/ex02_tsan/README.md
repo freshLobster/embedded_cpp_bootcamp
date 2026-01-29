@@ -1,17 +1,15 @@
 # 06_debugging - ex02_tsan
 
 ## 1) Title + Mission
-Mission: Implement a thread-safe log aggregator in a self-contained exercise that builds and tests locally.
-
+Mission: Eliminate a data race and confirm the fix using ThreadSanitizer.【https://clang.llvm.org/docs/ThreadSanitizer.html†L42-L42】
 ## 2) What you are building (plain English)
-You are building a thread-safe log aggregator. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a thread-safe logging path and using TSan to prove the race is gone in concurrent execution.【https://clang.llvm.org/docs/ThreadSanitizer.html†L42-L42】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Debugging tools only help when code paths are deterministic. This exercise builds a small target designed for sanitizer and debugger workflows.
-
+Concurrency bugs are intermittent and hard to reproduce; dedicated race detectors dramatically shorten debug cycles.【https://clang.llvm.org/docs/ThreadSanitizer.html†L42-L42】
 ## 4) Concepts (short lecture)
-ThreadSanitizer reports data races when shared state is accessed without synchronization. A log aggregator must protect its internal storage to avoid races under concurrent logging. This exercise builds that protection.
+ThreadSanitizer detects data races by instrumenting code and reporting conflicting memory accesses across threads.【https://clang.llvm.org/docs/ThreadSanitizer.html†L42-L42】
 
+Atomic operations are the simplest safe primitive for shared counters and flags when full locks are unnecessary.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.

@@ -1,17 +1,15 @@
 # 06_debugging - ex03_gdb_remote
 
 ## 1) Title + Mission
-Mission: Implement a checksum routine with a predictable call chain for debugging practice in a self-contained exercise that builds and tests locally.
-
+Mission: Implement a checksum-based integrity check for remote debug data streams.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 2) What you are building (plain English)
-You are building a checksum routine with a predictable call chain for debugging practice. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
-
+You are building a checksum function that can validate payload integrity when inspecting state remotely.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Debugging tools only help when code paths are deterministic. This exercise builds a small target designed for sanitizer and debugger workflows.
-
+Remote debugging often depends on verifying data integrity over transports; a simple checksum is a practical guardrail.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 4) Concepts (short lecture)
-Debugger practice is easiest with deterministic functions and repeatable inputs. A checksum function with a small call chain is ideal for stepping, breakpoints, and inspecting state. This exercise provides that target.
+The Internet checksum is a widely used integrity check that illustrates how simple checksums detect transmission errors.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 
+Embedding lightweight integrity checks in debug protocols makes remote diagnosis more trustworthy under noisy links.【https://www.rfc-editor.org/rfc/rfc1071.txt†L20-L22】
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
