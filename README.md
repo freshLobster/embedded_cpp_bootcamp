@@ -12,8 +12,11 @@ with additional notes in **[STYLE](STYLE.md)**
 Hands-on modern C++20 training repo for autonomy/robotics platform engineers. Develop on Windows with WSL2 Ubuntu; deploy to Linux SBCs and selected MCUs. CUDA path optional.
 
 ## Quickstart (WSL2 Ubuntu)
-- Install deps: `sudo apt update && sudo apt install -y build-essential ninja-build cmake git clang gdb gdbserver perf python3-pip libc++-dev libc++abi-dev`
-- Optional CUDA (WSL): install NVIDIA drivers + CUDA toolkit per NVIDIA docs, then verify `nvidia-smi` and `nvcc --version`.
+- Install deps: `sudo apt-get update && sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb`
+- Optional perf tooling: `sudo apt-get install -y linux-tools-common linux-tools-generic`
+- Optional heap profiling: `sudo apt-get install -y heaptrack valgrind`
+- Optional QEMU (sim): `sudo apt-get install -y qemu-system-aarch64 qemu-user-static`
+- Optional CUDA (WSL): `sudo apt-get install -y nvidia-cuda-toolkit` then verify `nvidia-smi` and `nvcc --version`.
 - Configure & build: `./scripts/build_debug.sh`
 - Run tests: `./scripts/run_tests.sh`
 - Run release + benchmark: `./scripts/build_release.sh && ./build/release/platform_core_bench`
@@ -60,3 +63,4 @@ Example: `cmake --preset dev -DPLATFORM_FAILURE_RACE=ON && cmake --build --prese
   4) Save logs/outputs to `modules/NN_name/artifacts/` with the naming conventions listed there.
 - Full index: `docs/modules_index.md` (links to every module README).
 - Grade a module: `python3 tools/grader/grade.py --module modules/01_foundations` or grade all with `--all`; add `--json` for machine-readable results.
+- Per-exercise work lives under `modules/NN_name/exercises/exXX_slug/` with its own `learner/`, `solution/`, and `grading/`.

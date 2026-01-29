@@ -1,5 +1,5 @@
 
-# Self-review checklist – Debugging
+# Self-review checklist - Debugging
 - [ ] Code matches `STYLE.md` conventions (naming, RAII, no raw new/delete).
 - [ ] Headers minimal includes; compilation warnings = 0.
 - [ ] Concurrency: no detached threads; uses stop tokens where applicable.

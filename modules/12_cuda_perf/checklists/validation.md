@@ -1,5 +1,5 @@
 
-# Validation checklist – CUDA Perf
+# Validation checklist - CUDA Perf
 - [ ] `cmake --preset dev` succeeds.
 - [ ] `ctest --preset dev -R Module12_cuda_perf` passes (or noted skip if not added).
 - [ ] Artifacts present in `artifacts/` and named correctly.

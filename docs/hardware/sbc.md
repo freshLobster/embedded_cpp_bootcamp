@@ -35,8 +35,8 @@ Ext 5V ---- Servo V+
 
 ## Bus configuration
 - I2C speed: 400 kHz
-- SPI speed: 1–4 MHz for MAX31855
-- Servo PWM: 50 Hz, 1–2 ms pulse
+- SPI speed: 1-4 MHz for MAX31855
+- Servo PWM: 50 Hz, 1-2 ms pulse
 
 ## Bring-up checklist
 - `i2cdetect -y 1` shows sensor address (0x68 for MPU6050).

@@ -7,7 +7,9 @@
 - Cooperative scheduler or FreeRTOS tasks; demonstrate ISR vs task race.
 
 ## Toolchain
-- Install: `pip install esptool` and ESP-IDF (v5.x).
+- WSL2 Ubuntu install:
+  - `sudo apt-get update && sudo apt-get install -y python3-pip git cmake ninja-build openocd esptool`
+- Install: ESP-IDF (v5.x) and `esptool` (apt package above).
 - Build: `idf.py set-target esp32c3 && idf.py build`.
 - Flash: `idf.py -p /dev/ttyUSB0 flash monitor`.
 

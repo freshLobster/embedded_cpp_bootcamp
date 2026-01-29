@@ -1,5 +1,5 @@
 
-# Troubleshooting – MCU
+# Troubleshooting - MCU
 - Configure fails (No C/CXX compiler): install build-essential/clang or run in VS x64 prompt. Re-run `cmake --preset dev`.
 - Linker missing Windows SDK libs (kernel32.lib): build inside WSL or use MSVC toolchain; rerun configure.
 - ctest finds 0 tests: ensure you built preset `dev` and added `GTEST_SKIP` appropriately; rerun `ctest -N` to list.

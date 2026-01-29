@@ -1,8 +1,8 @@
-# platform_core_training – Hands-on Curriculum
+# platform_core_training - Hands-on Curriculum
 
 Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/defense roles. All work is done in this repo unless stated. Windows host with WSL2 Ubuntu is the primary path; hardware and CUDA tracks are mandatory where specified.
 
-## Module 1 – Modern C++ Foundations (C++17/20 refresh)
+## Module 1 - Modern C++ Foundations (C++17/20 refresh)
 - **Objectives**
   - Use RAII for every resource.
   - Understand value vs reference vs pointer ownership.
@@ -30,7 +30,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Chooses value vs reference intentionally.
   - Removes accidental copies after profiling.
 
-## Module 2 – Memory Management & Allocators
+## Module 2 - Memory Management & Allocators
 - **Objectives**
   - Design bounded-memory systems; avoid hidden allocations.
   - Implement arena/custom allocator for hot path objects.
@@ -58,7 +58,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Demonstrates bounded memory in profiles.
   - Shows UAF fix validated by sanitizer.
 
-## Module 3 – Concurrency Primitives
+## Module 3 - Concurrency Primitives
 - **Objectives**
   - Use `std::jthread`, mutexes, condvars correctly.
   - Avoid deadlocks via lock ordering; diagnose races.
@@ -86,7 +86,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Proves deadlock prevention with documented lock order.
   - Explains memory order used in atomics.
 
-## Module 4 – Platform Core Architecture
+## Module 4 - Platform Core Architecture
 - **Objectives**
   - Understand provided pub/sub bus and pipeline skeleton.
   - Enforce API boundaries and modular decomposition.
@@ -113,7 +113,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Explains message flow and backpressure points.
   - Produces trace showing latency budget.
 
-## Module 5 – Scheduling & Real-Time-ish Behavior
+## Module 5 - Scheduling & Real-Time-ish Behavior
 - **Objectives**
   - Budget latency/jitter; design timeouts and fault handling.
   - Understand priority inversion risks.
@@ -140,7 +140,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Implements timeouts that fail safe.
   - Explains observed jitter sources.
 
-## Module 6 – Debugging & Sanitizers
+## Module 6 - Debugging & Sanitizers
 - **Objectives**
   - Use gdb locally and via gdbserver.
   - Run ASan/UBSan/TSan; interpret reports; fix bugs.
@@ -167,7 +167,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Uses gdb to inspect threads/locks.
   - Archives artifacts with timestamps.
 
-## Module 7 – Performance & Profiling
+## Module 7 - Performance & Profiling
 - **Objectives**
   - Benchmark hot paths; prove improvements.
   - Use `perf`, flamegraphs, and Google Benchmark.
@@ -193,7 +193,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Reads flamegraphs to pinpoint work.
   - Removes hidden allocations and proves it.
 
-## Module 8 – Cross-Compilation & SBC Deployment
+## Module 8 - Cross-Compilation & SBC Deployment
 - **Objectives**
   - Cross-compile for aarch64 Linux.
   - Deploy and validate on Raspberry Pi/Orange Pi.
@@ -220,7 +220,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Demonstrates latency numbers on hardware.
   - Handles sensor faults gracefully.
 
-## Module 9 – MCU Track (ESP32-C3)
+## Module 9 - MCU Track (ESP32-C3)
 - **Objectives**
   - Build and flash firmware with UART link.
   - Debug with OpenOCD/GDB; inspect registers/memory.
@@ -246,7 +246,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Explains ISR/task coordination.
   - Provides timing evidence meeting budget.
 
-## Module 10 – Simulation Track (QEMU / Renode)
+## Module 10 - Simulation Track (QEMU / Renode)
 - **Objectives**
   - Use simulators for deterministic repro and CI.
   - Compare simulation vs hardware limitations.
@@ -272,7 +272,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Knows limitations vs real hardware.
   - Uses simulation for regression tests.
 
-## Module 11 – CUDA Fundamentals & Integration
+## Module 11 - CUDA Fundamentals & Integration
 - **Objectives**
   - Build CUDA code on Windows and WSL.
   - Wrap CUDA resources in RAII; no raw `cudaMalloc` in app code.
@@ -300,7 +300,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
   - Uses RAII for device memory/streams.
   - Proves GPU correctness vs CPU.
 
-## Module 12 – CUDA Performance, Debugging, and Jetson Awareness
+## Module 12 - CUDA Performance, Debugging, and Jetson Awareness
 - **Objectives**
   - Profile kernels with Nsight Systems/Compute (or CLI).
   - Identify divergence, coalescing issues, and CPU/GPU sync points.
@@ -329,28 +329,28 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
 
 ---
 
-## 4-Week Schedule (5–10 hrs/week)
-- **Week 1:** Modules 1–3 (C++ refresh, memory, concurrency) + reproduce race/UAF failures.
-- **Week 2:** Modules 4–6 (architecture, scheduling, debugging) + fix failure modes.
-- **Week 3:** Modules 7–8 (profiling, SBC cross/deploy) + gather hardware latency data.
-- **Week 4:** Modules 9–12 (MCU, simulation, CUDA fundamentals + performance) + finalize artifacts.
+## 4-Week Schedule (5-10 hrs/week)
+- **Week 1:** Modules 1-3 (C++ refresh, memory, concurrency) + reproduce race/UAF failures.
+- **Week 2:** Modules 4-6 (architecture, scheduling, debugging) + fix failure modes.
+- **Week 3:** Modules 7-8 (profiling, SBC cross/deploy) + gather hardware latency data.
+- **Week 4:** Modules 9-12 (MCU, simulation, CUDA fundamentals + performance) + finalize artifacts.
 
 ## 2-Week Cram Mode
-- **Days 1–3:** Modules 1–3 condensed; run sanitizers and fix failures.
-- **Days 4–6:** Modules 4–6; produce latency budget + timeout test.
-- **Days 7–9:** Modules 7–8; cross-compile and deploy once to SBC.
-- **Days 10–14:** Modules 11–12 focus; minimal MCU/sim exposure; capture CUDA parity + Nsight snapshot.
+- **Days 1-3:** Modules 1-3 condensed; run sanitizers and fix failures.
+- **Days 4-6:** Modules 4-6; produce latency budget + timeout test.
+- **Days 7-9:** Modules 7-8; cross-compile and deploy once to SBC.
+- **Days 10-14:** Modules 11-12 focus; minimal MCU/sim exposure; capture CUDA parity + Nsight snapshot.
 
 ## Interview Mapping (topics → modules)
-- C++ ownership/RAII: 1–2  
+- C++ ownership/RAII: 1-2  
 - Concurrency & deadlocks/races: 3  
-- Systems design & APIs: 4–5  
+- Systems design & APIs: 4-5  
 - Debugging/sanitizers: 6  
 - Performance/flamegraphs: 7  
 - Cross-compilation/deployment: 8  
 - Embedded/RTOS/ISR: 9  
 - Simulation/determinism: 10  
-- CUDA fundamentals/perf: 11–12  
+- CUDA fundamentals/perf: 11-12  
 - Fault tolerance/backpressure: 5,8
 
 ## Portfolio Checklist
@@ -360,7 +360,7 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
 - Debug artifacts: ASan/TSan logs, gdb transcripts, flamegraphs, Nsight reports.
 - Hardware evidence: photos/wiring, oscilloscope/logic analyzer captures, systemd logs.
 - Simulation scripts and CI logs.
-- Bug writeups: race, deadlock, UAF, perf regression—cause, fix, proof.
+- Bug writeups: race, deadlock, UAF, perf regression-cause, fix, proof.
 
 ## Module Folders
 - Detailed, step-by-step lab guides live in `modules/NN_name/` (see `docs/modules_index.md`).

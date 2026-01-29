@@ -1,39 +1,34 @@
+# Module 12_cuda_perf - CUDA Perf
 
-# Module 12_cuda_perf – CUDA Perf
+**Mission:** Nsight/CLI profiling, divergence, Jetson awareness.
 
-**Mission:** Nsight/CLI profiling, divergence, Jetson awareness for mission-critical robotics/autonomy software. Self-contained; assume only this folder + repo tooling.
-
-**Estimated time:** 2–4 hours.
+**Estimated time:** 2-4 hours.
 
 ## Setup checklist (WSL2 primary, Windows notes)
-- WSL2 Ubuntu: `sudo apt update && sudo apt install -y build-essential ninja-build cmake clang gdb gdbserver perf python3-pip`
-- Verify compiler: `clang++ --version` → expect clang output (any recent 14+). On Windows native: use "x64 Native Tools" and `cl /?` should work.
-- Repo root: confirm `CMakePresets.json` exists: `ls CMakePresets.json` → file listed.
-- Build dir clean: `rm -rf build/*` (optional) to avoid stale configs.
+- WSL2 Ubuntu: `sudo apt-get update && sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb`
+- Optional (CUDA toolkit): `sudo apt-get install -y nvidia-cuda-toolkit`
+- Verify compiler: `clang++ --version` (expect version output). On Windows native: open "x64 Native Tools" and run `cl /?`.
+- Repo root contains `CMakePresets.json` and `tools/grader/grade.py`.
 
 ## Start here
-1. Configure debug preset: `cmake --preset dev`
-2. Build tests only: `cmake --build --preset dev --target platform_core_tests`
-3. Run this module's focused tests (filter): `ctest --preset dev -R Module12_cuda_perf` (will pass once you add/enable tests as instructed in exercises).
-4. Code lives in repo root paths noted in each exercise; stage work-in-progress artifacts under `modules/12_cuda_perf_cuda_perf/artifacts/`.
+1) Pick one exercise folder below and `cd` into it.
+2) Follow the exercise README exactly; it includes build/test commands and grading steps.
+3) Save outputs in that exercise's `learner/artifacts/`.
 
-## Exercises
-| # | Title | Est. time | Skills | Verification |
-|---|-------|-----------|--------|--------------|
-| 1 | ex01 | ~45m | core topic | see exercises/ex01_*.md |
-| 2 | ex02 | ~45m | core topic | see exercises/ex02_*.md |
-| 3 | ex03 | ~45m | core topic | see exercises/ex03_*.md |
+## Exercises (per-folder)
+| Exercise | Link |
+|---|---|
+| ex01_nsys | [ex01_nsys](exercises/ex01_nsys/README.md) |
+| ex02_divergence | [ex02_divergence](exercises/ex02_divergence/README.md) |
+| ex03_jetson | [ex03_jetson](exercises/ex03_jetson/README.md) |
 
 ## Done definition
-- All steps in exercises completed.
-- Artifacts saved in `artifacts/` with naming convention.
-- `ctest --preset dev` (or module-specific filters) passes.
-- Benchmarks/sanitizers (if requested) run and logs saved.
-- Checklist files in `checklists/` reviewed and ticked.
+- Each exercise you attempt has passing tests and saved artifacts.
+- The per-exercise grader reports a numeric score.
+- Module-level artifacts (if any) are stored in `modules/12_cuda_perf/artifacts/`.
 
 ## Grade this module
-- Run: python3 tools/grader/grade.py --module modules/12_cuda_perf
-- JSON: python3 tools/grader/grade.py --module 12 --json
-- Artifacts expected in modules/12_cuda_perf/artifacts/ per exercises.
-- CUDA-dependent checks require `--enable-cuda`; otherwise they are skipped with partial credit.
-
+- Module-level grader: `python3 tools/grader/grade.py --module modules/12_cuda_perf`
+- JSON: `python3 tools/grader/grade.py --module 12 --json`
+- Per-exercise grading is done inside each exercise folder README.
+- CUDA checks require `--enable-cuda` to score full points.

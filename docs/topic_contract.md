@@ -2,7 +2,7 @@
 
 - `sensor.raw`  
   - Payload: `"<name>:<float_value>"`  
-  - Rate: 20–200 Hz depending on scheduler setting.  
+  - Rate: 20-200 Hz depending on scheduler setting.  
   - Consumer: perception stage.
 
 - `control.cmd`  

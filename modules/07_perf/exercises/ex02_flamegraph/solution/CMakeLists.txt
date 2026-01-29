@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(ex02_flamegraph_solution LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(ex02_flamegraph_tests src/main.cpp)
+target_include_directories(ex02_flamegraph_tests PRIVATE include)
+enable_testing()
+add_test(NAME ex02_flamegraph_tests COMMAND ex02_flamegraph_tests)

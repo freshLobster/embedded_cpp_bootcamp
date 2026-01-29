@@ -1,5 +1,5 @@
 
-# Validation checklist – Memory
+# Validation checklist - Memory
 - [ ] `cmake --preset dev` succeeds.
 - [ ] `ctest --preset dev -R Module02_memory` passes (or noted skip if not added).
 - [ ] Artifacts present in `artifacts/` and named correctly.

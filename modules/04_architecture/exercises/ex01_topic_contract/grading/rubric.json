@@ -1,0 +1,55 @@
+{
+  "checks": [
+    {
+      "id": "configure",
+      "type": "command",
+      "points": 20,
+      "description": "Configure (Ninja, Debug)",
+      "cmd": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "tool": "ninja",
+      "skip_if_missing_tool": true,
+      "skip_points": 10
+    },
+    {
+      "id": "build",
+      "type": "command",
+      "points": 20,
+      "description": "Build",
+      "cmd": [
+        "cmake",
+        "--build",
+        "build"
+      ],
+      "tool": "cmake"
+    },
+    {
+      "id": "tests",
+      "type": "command",
+      "points": 40,
+      "description": "Run tests",
+      "cmd": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "--output-on-failure"
+      ],
+      "tool": "ctest"
+    },
+    {
+      "id": "artifacts",
+      "type": "file_exists",
+      "points": 20,
+      "description": "Artifacts present",
+      "pattern": "artifacts/*"
+    }
+  ]
+}

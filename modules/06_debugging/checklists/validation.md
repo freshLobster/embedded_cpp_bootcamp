@@ -1,5 +1,5 @@
 
-# Validation checklist – Debugging
+# Validation checklist - Debugging
 - [ ] `cmake --preset dev` succeeds.
 - [ ] `ctest --preset dev -R Module06_debugging` passes (or noted skip if not added).
 - [ ] Artifacts present in `artifacts/` and named correctly.

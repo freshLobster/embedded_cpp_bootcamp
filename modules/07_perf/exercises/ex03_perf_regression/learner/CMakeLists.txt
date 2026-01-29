@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(ex03_perf_regression_learner LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(ex03_perf_regression_tests src/main.cpp)
+target_include_directories(ex03_perf_regression_tests PRIVATE include)
+enable_testing()
+add_test(NAME ex03_perf_regression_tests COMMAND ex03_perf_regression_tests)

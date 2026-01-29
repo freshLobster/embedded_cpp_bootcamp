@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Deterministic module grader.
+Deterministic module/exercise grader.
 - Supports per-module rubrics in modules/<module>/grading/rubric.json
+- Supports per-exercise rubrics in modules/<module>/exercises/<ex>/grading/rubric.json
 - Check types: cmake_build, ctest, file_exists, file_contains, tool_present,
   command, clang_format_check, csv_schema, time_budget.
 - Skips tools gracefully with partial credit when configured.
@@ -18,7 +19,7 @@ import subprocess
 import sys
 import time
 from glob import glob
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 
 def is_wsl() -> bool:
@@ -29,11 +30,11 @@ def is_wsl() -> bool:
         return False
 
 
-def run_cmd(cmd: List[str], timeout: int = 120) -> Tuple[int, str, str, float]:
+def run_cmd(cmd: List[str], timeout: int = 120, cwd: Optional[str] = None) -> Tuple[int, str, str, float]:
     start = time.time()
     try:
         p = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, text=True, check=False
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, text=True, check=False, cwd=cwd
         )
         return p.returncode, p.stdout, p.stderr, time.time() - start
     except subprocess.TimeoutExpired as e:
@@ -122,7 +123,7 @@ def grade_check(check: Dict[str, Any], module_path: str, args) -> Dict[str, Any]
 
         if ctype == "command":
             cmd = check["cmd"]
-            rc, out, err, dur = run_cmd(cmd, timeout=check.get("timeout", 120))
+            rc, out, err, dur = run_cmd(cmd, timeout=check.get("timeout", 120), cwd=module_path)
             if rc != 0:
                 return {"status": "fail", "earned": 0, "message": f"rc={rc} stderr={err.strip()}"}
             regex = check.get("regex")
@@ -166,7 +167,7 @@ def grade_check(check: Dict[str, Any], module_path: str, args) -> Dict[str, Any]
         if ctype == "time_budget":
             cmd = check["cmd"]
             budget = check["seconds"]
-            rc, out, err, dur = run_cmd(cmd, timeout=budget + 5)
+            rc, out, err, dur = run_cmd(cmd, timeout=budget + 5, cwd=module_path)
             if rc != 0:
                 return {"status": "fail", "earned": 0, "message": f"rc {rc}"}
             if dur <= budget:
@@ -179,21 +180,26 @@ def grade_check(check: Dict[str, Any], module_path: str, args) -> Dict[str, Any]
     return {"status": "fail", "earned": 0, "message": f"unknown check type {ctype}"}
 
 
-def grade_module(module_path: str, args) -> Dict[str, Any]:
-    rubric_path = os.path.join(module_path, "grading", "rubric.json")
+def grade_target(module_path: str, rubric_path: str, args) -> Dict[str, Any]:
     rubric = load_rubric(rubric_path)
     checks = rubric["checks"]
     total_points = sum(c["points"] for c in checks)
     earned = 0
     results = []
     start = time.time()
+    block_following = False
     for check in checks:
-        res = grade_check(check, module_path, args)
+        if block_following and check["id"] in ("build", "tests"):
+            res = {"status": "skipped", "earned": 0, "message": "blocked by failed configure/build"}
+        else:
+            res = grade_check(check, module_path, args)
         res["id"] = check["id"]
         res["description"] = check["description"]
         res["points"] = check["points"]
         results.append(res)
         earned += res["earned"]
+        if check["id"] in ("configure", "build") and res["status"] in ("fail", "skipped"):
+            block_following = True
     runtime = time.time() - start
     score = round((earned / total_points) * 100, 1) if total_points else 0.0
     failed = [r for r in results if r["status"] == "fail"]
@@ -209,10 +215,10 @@ def grade_module(module_path: str, args) -> Dict[str, Any]:
         "platform": platform.platform(),
         "python": sys.version.split()[0],
         "wsl": is_wsl(),
-        "tools": {t: check_tool(t) for t in ["clang-format", "cmake", "ctest", "perf", "heaptrack", "nsys", "nvidia-smi"]},
+        "tools": {t: check_tool(t) for t in ["clang-format", "cmake", "ctest", "ninja", "perf", "heaptrack", "nsys", "nvidia-smi"]},
     }
     return {
-        "module": os.path.basename(module_path),
+        "target": os.path.basename(module_path),
         "score": score,
         "earned": earned,
         "possible": total_points,
@@ -233,52 +239,78 @@ def discover_modules(root: str) -> List[str]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Module grader")
+    parser = argparse.ArgumentParser(description="Module/Exercise grader")
     parser.add_argument("--module", help="path or module id (e.g., modules/01_foundations or 01)")
+    parser.add_argument("--exercise", help="path to exercise folder (modules/.../exercises/exXX_slug)")
+    parser.add_argument("--use-solution", action="store_true", help="grade solution instead of learner for exercises")
+    parser.add_argument("--print-requirements", action="store_true", help="print expected checks and exit")
     parser.add_argument("--all", action="store_true", help="grade all modules")
     parser.add_argument("--json", action="store_true", help="machine-readable JSON output")
     parser.add_argument("--enable-hardware", action="store_true", help="enable hardware-required checks")
     parser.add_argument("--enable-cuda", action="store_true", help="enable cuda-required checks")
     args = parser.parse_args()
 
-    root = os.path.join(os.getcwd(), "modules")
-    modules = []
-    if args.all or (args.module is None):
-        modules = discover_modules(root)
-    else:
-        if os.path.isdir(args.module):
-            modules = [args.module]
-        else:
-            # try match by prefix number
-            for m in discover_modules(root):
-                if os.path.basename(m).startswith(args.module):
-                    modules = [m]
-                    break
-        if not modules:
-            print(f"Module {args.module} not found", file=sys.stderr)
-            sys.exit(1)
-
     all_results = []
-    for m in modules:
-        res = grade_module(m, args)
+
+    if args.exercise:
+        ex_path = args.exercise
+        if not os.path.isdir(ex_path):
+            print(f"Exercise path {ex_path} not found", file=sys.stderr)
+            sys.exit(1)
+        target_dir = os.path.join(ex_path, "solution" if args.use_solution else "learner")
+        rubric_path = os.path.join(ex_path, "grading", "rubric.json")
+        if args.print_requirements:
+            print(json.dumps(load_rubric(rubric_path), indent=2))
+            return
+        res = grade_target(target_dir, rubric_path, args)
+        res["exercise"] = os.path.basename(ex_path)
         all_results.append(res)
+    else:
+        root = os.path.join(os.getcwd(), "modules")
+        modules = []
+        if args.all or (args.module is None):
+            modules = discover_modules(root)
+        else:
+            if os.path.isdir(args.module):
+                modules = [args.module]
+            else:
+                for m in discover_modules(root):
+                    if os.path.basename(m).startswith(args.module):
+                        modules = [m]
+                        break
+        if not modules:
+            print("No modules found", file=sys.stderr)
+            sys.exit(1)
+        for m in modules:
+            rubric_path = os.path.join(m, "grading", "rubric.json")
+            if args.print_requirements:
+                print(json.dumps(load_rubric(rubric_path), indent=2))
+                return
+            res = grade_target(m, rubric_path, args)
+            all_results.append(res)
 
     if args.json:
         print(json.dumps(all_results, indent=2))
         return
 
     for res in all_results:
-        print(f"== {res['module']} : {res['score']} ({res['earned']}/{res['possible']}) runtime {res['runtime_sec']}s")
+        label = res.get("exercise") or res.get("target")
+        print(f"== {label} : {res['score']} ({res['earned']}/{res['possible']}) runtime {res['runtime_sec']}s")
         for r in res["results"]:
             print(f"  [{r['status']}] {r['id']} ({r['earned']}/{r['points']}) - {r['description']} :: {r['message']}")
         if res["recommendations"]:
             print("  Recommendations:")
             for rec in res["recommendations"]:
                 print(f"   - {rec}")
+        env = res.get("env", {})
+        if env:
+            tools = env.get("tools", {})
+            tools_str = ", ".join([f"{k}={'yes' if v else 'no'}" for k, v in tools.items()])
+            print(f"  Environment: {env.get('platform')} | wsl={env.get('wsl')} | tools: {tools_str}")
         print("")
 
     overall = sum(r["score"] for r in all_results) / len(all_results) if all_results else 0
-    print(f"Overall score: {overall:.1f} across {len(all_results)} modules")
+    print(f"Overall score: {overall:.1f} across {len(all_results)} targets")
 
 
 if __name__ == "__main__":

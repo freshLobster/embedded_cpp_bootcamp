@@ -1,5 +1,5 @@
 
-# Overview – CUDA Perf
+# Overview - CUDA Perf
 - Mission: Nsight/CLI profiling, divergence, Jetson awareness.
 - Context: applies to platform core (bounded queues, bus, pipeline) and hardware/GPU tracks where noted.
 - You will: complete 3 targeted exercises, capture artifacts, run tests/benchmarks, and update checklists.

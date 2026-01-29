@@ -2,7 +2,7 @@
 
 ## Environment setup
 - Windows: install NVIDIA driver + CUDA Toolkit 12.x; verify `nvidia-smi` and `nvcc --version`.
-- WSL2: ensure driver supports WSL; install CUDA Toolkit for Ubuntu, verify `nvidia-smi` inside WSL.
+- WSL2: `sudo apt-get update && sudo apt-get install -y nvidia-cuda-toolkit`; verify `nvidia-smi` and `nvcc --version`.
 - Build: `cmake --preset cuda && cmake --build --preset cuda`
 
 ## Labs
