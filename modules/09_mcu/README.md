@@ -9,6 +9,24 @@
 - Optional MCU tooling: `sudo apt-get install -y openocd esptool`
 - Verify compiler: `clang++ --version` (expect version output). On Windows native: open "x64 Native Tools" and run `cl /?`.
 - Repo root contains `CMakePresets.json` and `tools/grader/grade.py`.
+## Lecture
+
+### RTOS tasks on ESP32-class MCUs
+ESP-IDF uses FreeRTOS as its operating system layer, which provides task scheduling, synchronization primitives, and time services on the ESP32 family. That means your firmware is not just a loop; it is a set of tasks with priorities that the scheduler runs according to policy. Understanding that model is essential when you need to reason about jitter, preemption, and deadlines in embedded autonomy. This module assumes the RTOS model and makes you structure firmware accordingly. ?cite?turn22view2?
+
+Because FreeRTOS is the foundation, you must treat task priorities and synchronization as first-class design decisions. A low-priority task that holds a shared resource can block a higher-priority task, which shows up as jitter or missed deadlines. The exercises in this module use that tension to force you to see how task design affects latency. That experience will transfer directly to larger MCU systems with more sensors and control loops. ?cite?turn22view2?
+
+### Interrupts and ISR/task races
+ESP-IDF provides an interrupt allocation API and documents interrupt levels, which control what can and cannot run inside an ISR. This matters because ISRs must be short, deterministic, and careful about which services they call. When you mix ISR code with task-level code, you are creating a concurrency boundary that is easy to get wrong. The ISR/task race exercise in this module makes those mistakes visible. ?cite?turn22view1?
+
+FreeRTOS is explicit that interrupt service routines must use ISR-safe API variants (the "FromISR" forms) and cannot call arbitrary kernel functions. That rule is a common source of subtle bugs when developers try to do too much work inside an interrupt. Properly deferring work to a task or queue is the safe pattern. You will practice that pattern and see what goes wrong when you violate it. ?cite?turn22view3?
+
+### UART as a reliable host bridge
+The ESP-IDF UART driver provides access to the UART peripheral for transmitting and receiving data through a standard driver API. UART remains the most common bridge between an MCU and a host system because it is simple, deterministic, and easy to debug. In this module you will build a UART-based bridge for logs and control signals, which mirrors how many robotics subsystems talk to higher-level controllers. The UART exercises force you to handle framing and buffering explicitly. ?cite?turn22view0?
+
+A UART link is only as reliable as the firmware that manages it. Buffer sizes, interrupt-driven receive paths, and task scheduling decisions determine whether you drop bytes or meet latency targets. The UART driver gives you the primitives, but your design determines the system behavior under load. That is why the module pairs UART work with timing validation and race detection. ?cite?turn22view0?
+
+
 
 ## Start here
 1) Pick one exercise folder below and `cd` into it.
