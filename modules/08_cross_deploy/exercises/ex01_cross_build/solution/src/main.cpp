@@ -1,20 +1,25 @@
 #include <cassert>
-#include "exercise.hpp"
+#include <string>
 
-SensorSample read_sensor_fake(){ return {1}; }
-SensorSample read_sensor_hw(){ return {2}; }
-
-int exercise(){
-#ifdef ENABLE_HARDWARE
-    SensorSample s = read_sensor_hw();
+std::string target_arch() {
+#if defined(__aarch64__)
+    return "aarch64";
+#elif defined(__x86_64__) || defined(_M_X64)
+    return "x86_64";
 #else
-    SensorSample s = read_sensor_fake();
+    return "unknown";
 #endif
-    (void)s;
-    return 42;
+}
+
+int exercise() {
+    auto arch = target_arch();
+    if (arch == "unknown") {
+        return 1;
+    }
+    return 0;
 }
 
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }

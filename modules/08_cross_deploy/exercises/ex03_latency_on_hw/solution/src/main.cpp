@@ -1,20 +1,32 @@
 #include <cassert>
-#include "exercise.hpp"
+#include <vector>
+#include <limits>
 
-SensorSample read_sensor_fake(){ return {1}; }
-SensorSample read_sensor_hw(){ return {2}; }
+struct JitterStats {
+    int min{0};
+    int max{0};
+    int span{0};
+};
 
-int exercise(){
-#ifdef ENABLE_HARDWARE
-    SensorSample s = read_sensor_hw();
-#else
-    SensorSample s = read_sensor_fake();
-#endif
-    (void)s;
-    return 42;
+JitterStats compute_jitter(const std::vector<int>& samples) {
+    int minv = std::numeric_limits<int>::max();
+    int maxv = std::numeric_limits<int>::min();
+    for (int v : samples) {
+        if (v < minv) minv = v;
+        if (v > maxv) maxv = v;
+    }
+    return {minv, maxv, maxv - minv};
+}
+
+int exercise() {
+    auto s = compute_jitter({10,12,11,15});
+    if (s.min != 10 || s.max != 15 || s.span != 5) {
+        return 1;
+    }
+    return 0;
 }
 
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }

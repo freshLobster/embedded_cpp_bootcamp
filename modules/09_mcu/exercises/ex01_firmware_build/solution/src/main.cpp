@@ -1,20 +1,24 @@
 #include <cassert>
-#include "exercise.hpp"
+#include <string>
+#include <string_view>
 
-SensorSample read_sensor_fake(){ return {1}; }
-SensorSample read_sensor_hw(){ return {2}; }
+std::string encode_sample(int value) {
+    return "S:" + std::to_string(value) + "\n";
+}
 
-int exercise(){
-#ifdef ENABLE_HARDWARE
-    SensorSample s = read_sensor_hw();
-#else
-    SensorSample s = read_sensor_fake();
-#endif
-    (void)s;
-    return 42;
+int decode_sample(std::string_view text) {
+    if (text.rfind("S:", 0) != 0) return -1;
+    return std::stoi(std::string(text.substr(2)));
+}
+
+int exercise() {
+    auto frame = encode_sample(42);
+    if (frame != "S:42\n") return 1;
+    if (decode_sample(frame) != 42) return 2;
+    return 0;
 }
 
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }

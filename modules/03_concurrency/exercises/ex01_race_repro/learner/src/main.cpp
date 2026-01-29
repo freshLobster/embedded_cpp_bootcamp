@@ -1,9 +1,13 @@
 #include <cassert>
 #include "exercise.hpp"
-int exercise(){
+
+// TODO: Implement a thread-safe counter that increments correctly under contention.
+// Follow the README for required behavior and edge cases.
+
+int exercise() {
     #error TODO_implement_exercise
 }
-int main(){
-    // This will not run until implemented.
+
+int main() {
     return 0;
 }

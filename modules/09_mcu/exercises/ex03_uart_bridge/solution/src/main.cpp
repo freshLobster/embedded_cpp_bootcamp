@@ -1,20 +1,37 @@
 #include <cassert>
-#include "exercise.hpp"
+#include <string>
+#include <string_view>
 
-SensorSample read_sensor_fake(){ return {1}; }
-SensorSample read_sensor_hw(){ return {2}; }
+unsigned checksum(std::string_view payload) {
+    unsigned sum = 0;
+    for (unsigned char c : payload) sum = (sum + c) & 0xFFu;
+    return sum;
+}
 
-int exercise(){
-#ifdef ENABLE_HARDWARE
-    SensorSample s = read_sensor_hw();
-#else
-    SensorSample s = read_sensor_fake();
-#endif
-    (void)s;
-    return 42;
+std::string encode_frame(std::string_view payload) {
+    return std::string(payload) + "|CS=" + std::to_string(checksum(payload));
+}
+
+bool decode_frame(std::string_view frame, std::string& payload_out) {
+    auto pos = frame.rfind("|CS=");
+    if (pos == std::string_view::npos) return false;
+    auto payload = frame.substr(0, pos);
+    auto cs_str = frame.substr(pos + 4);
+    unsigned cs = static_cast<unsigned>(std::stoul(std::string(cs_str)));
+    if (checksum(payload) != cs) return false;
+    payload_out = std::string(payload);
+    return true;
+}
+
+int exercise() {
+    auto frame = encode_frame("HELLO");
+    std::string payload;
+    if (!decode_frame(frame, payload)) return 1;
+    if (payload != "HELLO") return 2;
+    return 0;
 }
 
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }

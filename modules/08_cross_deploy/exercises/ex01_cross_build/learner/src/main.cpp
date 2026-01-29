@@ -1,14 +1,13 @@
 #include <cassert>
 #include "exercise.hpp"
 
-SensorSample read_sensor_fake(){ return {1}; }
-SensorSample read_sensor_hw(){ return {2}; }
+// TODO: Implement a function that reports the compile-time target architecture.
+// Follow the README for required behavior and edge cases.
 
-int exercise(){
+int exercise() {
     #error TODO_implement_exercise
 }
 
-int main(){
-    assert(exercise()==42);
+int main() {
     return 0;
 }

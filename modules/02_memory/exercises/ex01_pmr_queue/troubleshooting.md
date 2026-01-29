@@ -1,10 +1,13 @@
-- Build fails: ensure CMake and compiler installed.
-- #error TODO present: implement exercise() in learner/src/main.cpp.
-- Tests fail: ensure exercise() returns required value (42).
+# Troubleshooting - 02_memory ex01_pmr_queue
 
+## Common failures
 
-6) **Windows SDK libs missing**
-- Symptom: `lld-link: error: could not open 'kernel32.lib'` (and other .lib files).
-- Root cause: Windows SDK / MSVC toolchain not installed or not in environment.
-- Fix: install Visual Studio Build Tools with C++ workload, then run builds from the "x64 Native Tools" prompt, or build in WSL2.
-- Verify: `cl /?` works and CMake config succeeds.
+1) **Build fails due to TODO placeholder**
+   - Symptom: compiler error referencing `#error TODO_implement_exercise`.
+   - Fix: remove the `#error` line after you implement a queue backed by std::pmr::vector using a provided polymorphic allocator.
+   - Verify: `cmake --build build_learner` succeeds.
+
+2) **Tests fail with assertion**
+   - Symptom: `Assertion 'exercise() == 0' failed` or similar.
+   - Fix: inspect `exercise()` and ensure it enforces the required behavior for a queue backed by std::pmr::vector using a provided polymorphic allocator.
+   - Verify: `ctest --test-dir build_learner --output-on-failure` reports 100% passed.

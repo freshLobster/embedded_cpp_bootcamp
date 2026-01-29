@@ -1,19 +1,16 @@
-# Module 01_foundations - ex02_message_bus_view
+# 01_foundations - ex02_message_bus_view
 
 ## 1) Title + Mission
-Mission: Add string_view publish overload. You will use a tiny, isolated codebase to practice the build/test/grade loop in a deterministic way.
+Mission: Implement a const-correct read-only view over a message bus subscriber list in a self-contained exercise that builds and tests locally.
 
 ## 2) What you are building (plain English)
-A minimal C++ program with a single function `exercise()` that must return a specific value (42). The program is intentionally incomplete in `learner/` and complete in `solution/`.
+You are building a const-correct read-only view over a message bus subscriber list. The implementation lives in `learner/src/main.cpp`, and the tests in the same file validate the required behavior.
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-In safety-critical systems, you must be able to build, test, and validate components in isolation. This exercise enforces the habit of verifying outputs with deterministic tests and artifacts before integration into larger autonomy stacks.
+Real systems fail when ownership, concurrency, or timing assumptions are wrong. This exercise forces you to encode the concept directly in code so the build and tests prove the behavior instead of relying on informal reasoning.
 
 ## 4) Concepts (short lecture)
-- **Isolated builds**: each exercise builds without the root CMake.
-- **Single-function contract**: a tiny function provides a clean, testable contract.
-- **Deterministic grading**: outputs are scored from build/test logs and artifacts.
-Example: `int exercise();` must return 42, and the test asserts it.
+Const-correct views let you expose internal state for inspection without allowing mutation. A bus view should provide indexed access and size information while keeping ownership with the bus. This enforces interface hygiene and keeps the reader side from accidentally changing system wiring.
 
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
@@ -79,17 +76,16 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp`.
-   - Find the line `#error TODO_implement_exercise`.
-   - Replace it with `return 42;`.
-   - **Expected result:** the file compiles; `exercise()` now satisfies the contract.
-2) Rebuild the learner target:
-   - Run `cmake --build build_learner`.
-   - **Expected result:** build succeeds without errors.
-3) Run tests:
-   - Run `ctest --test-dir build_learner --output-on-failure`.
-   - **Expected result:** test exits 0 and reports 1/1 passed.
-4) Save artifacts:
+1) Open `learner/src/main.cpp` and read the TODOs.
+   - Identify the required behavior for a const-correct read-only view over a message bus subscriber list.
+   - **Expected result:** you can explain what `exercise()` must verify before it returns success.
+2) Implement the required logic in `exercise()`.
+   - Introduce any helper classes or functions directly in `learner/src/main.cpp` or in `learner/include/` if you prefer.
+   - **Expected result:** the code compiles without `#error` and the logic enforces the required behavior.
+3) Rebuild and run tests.
+   - Run `cmake --build build_learner` and `ctest --test-dir build_learner --output-on-failure`.
+   - **Expected result:** tests pass and return 0.
+4) Save artifacts.
    - Copy build and test output to `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
    - **Expected result:** those files exist and contain your command output.
 
@@ -120,9 +116,8 @@ Example snippet for `ctest.log`:
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
 - If build fails: verify CMake + compiler version.
-- If Ninja missing: use Visual Studio generator.
-- If tests fail: confirm `exercise()` returns 42.
+- If tests fail: re-check your logic against the required behavior.
 
 ## 13) Stretch goals
-- Add a second test that checks a different input/output.
-- Replace `assert` with a tiny custom test macro and update tests.
+- Add an extra test case that exercises an edge condition.
+- Refactor helper logic into `learner/include/` and keep the interface clean.

@@ -1,16 +1,13 @@
 #include <cassert>
 #include "exercise.hpp"
 
-int exercise_cpu(){ return 42; }
-#ifdef ENABLE_CUDA
-int exercise_gpu(){ return 42; }
-#endif
+// TODO: Implement a profiler marker generator for Nsight Systems workflows.
+// Follow the README for required behavior and edge cases.
 
-int exercise(){
+int exercise() {
     #error TODO_implement_exercise
 }
 
-int main(){
-    assert(exercise()==42);
+int main() {
     return 0;
 }

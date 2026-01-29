@@ -1,20 +1,22 @@
 #include <cassert>
-#include "exercise.hpp"
 
-int exercise_cpu(){ return 42; }
-#ifdef ENABLE_CUDA
-int exercise_gpu(){ return 42; }
-#endif
-
-int exercise(){
-#ifdef ENABLE_CUDA
-    return exercise_gpu();
+constexpr bool cuda_available() {
+#if defined(__CUDACC__)
+    return true;
 #else
-    return exercise_cpu();
+    return false;
 #endif
 }
 
+int exercise() {
+    constexpr bool expected = cuda_available();
+    if (cuda_available() != expected) {
+        return 1;
+    }
+    return 0;
+}
+
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }

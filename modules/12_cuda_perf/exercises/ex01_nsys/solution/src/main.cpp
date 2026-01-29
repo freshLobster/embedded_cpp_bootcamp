@@ -1,20 +1,17 @@
 #include <cassert>
-#include "exercise.hpp"
+#include <string>
 
-int exercise_cpu(){ return 42; }
-#ifdef ENABLE_CUDA
-int exercise_gpu(){ return 42; }
-#endif
+std::string profile_markers() {
+    return "nsys:range=compute";
+}
 
-int exercise(){
-#ifdef ENABLE_CUDA
-    return exercise_gpu();
-#else
-    return exercise_cpu();
-#endif
+int exercise() {
+    auto s = profile_markers();
+    if (s.find("nsys") == std::string::npos) return 1;
+    return 0;
 }
 
 int main(){
-    assert(exercise()==42);
+    assert(exercise()==0);
     return 0;
 }
