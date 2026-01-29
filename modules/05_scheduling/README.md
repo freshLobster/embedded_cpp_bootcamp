@@ -8,6 +8,24 @@
 - WSL2 Ubuntu: `sudo apt-get update && sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb`
 - Verify compiler: `clang++ --version` (expect version output). On Windows native: open "x64 Native Tools" and run `cl /?`.
 - Repo root contains `CMakePresets.json` and `tools/grader/grade.py`.
+## Lecture
+
+### Latency budgets and scheduler behavior
+On Linux, real-time scheduling policies like SCHED_FIFO and SCHED_RR are priority-based, and a runnable thread with higher priority will preempt lower-priority work. This is the mechanical reason latency budgets are not just math: if a control thread runs at a higher real-time priority, it can take CPU immediately, but if you misconfigure priority you can starve critical work. Understanding the scheduler's rules is the first step to writing repeatable timing tests. In this module you will measure latency under load to see these effects directly. ?cite?turn8view0?
+
+SCHED_RR differs from SCHED_FIFO by adding round-robin time slices among threads at the same priority, while SCHED_FIFO lets a runnable thread keep the CPU until it blocks or a higher-priority thread arrives. That means your choice of policy affects jitter: SCHED_RR can be fairer under equal priority, but SCHED_FIFO can reduce context-switch noise if your critical loop yields explicitly. When you build periodic tasks, you must align your time budget with the policy you choose so your measured jitter makes sense. The exercise on latency budgets is designed to force that alignment. ?cite?turn9view0?
+
+### Timeouts and watchdogs as safety rails
+The Linux watchdog API exposes a /dev/watchdog device that expects periodic keep-alive activity; if the system stops responding, the hardware or kernel watchdog can reset the system. This is the canonical safety rail for embedded systems that must fail fast rather than hang silently. In practice, you integrate a watchdog ping into your health monitor and treat missed deadlines as actionable faults. That is why your code must be able to detect "no progress" instead of waiting forever. ?cite?turn8view2?
+
+Because the watchdog acts on a timer, your software must express timeouts clearly and consistently. Using explicit timeouts on blocking operations gives the watchdog a chance to observe a stalled subsystem rather than letting a single deadlock freeze the process. When you combine watchdogs with structured logging and metrics, you can prove that your fallback logic triggers under load. This module's timeout and fallback exercise is effectively a rehearsal for that failure mode. ?cite?turn8view2?
+
+### Priority inversion awareness and safe defaults
+Priority inversion happens when a high-priority thread is blocked behind a lock held by a lower-priority thread. POSIX mutexes can be configured with priority inheritance (PRIO_INHERIT), which temporarily boosts the lower-priority thread so it can release the lock and unblock the high-priority one. That mechanism is essential when you have mixed-priority pipelines and cannot afford long priority inversions. The goal is not to eliminate locks, but to make their worst-case impact bounded and explainable. ?cite?turn9view1?
+
+Real-time policies like SCHED_FIFO let a runnable thread continue until it blocks, so unbounded critical sections are especially dangerous because they can starve unrelated work. Safe defaults therefore include short lock scopes, explicit timeouts, and thread priorities that match the system's timing contracts. The same scheduler behavior that gives you low latency can also hide starvation bugs until late testing, which is why you will measure and budget latency explicitly in this module. The emphasis here is on making scheduler behavior visible and testable rather than magical. ?cite?turn8view0?
+
+
 
 ## Start here
 1) Pick one exercise folder below and `cd` into it.
