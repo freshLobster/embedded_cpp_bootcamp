@@ -1,0 +1,62 @@
+{
+  "module": "03_concurrency",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "build dev",
+      "preset": "dev"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 25,
+      "description": "Module03 tests",
+      "preset": "dev",
+      "regex": "Module03"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "clang-format concurrency edits",
+      "files": [
+        "../../include/platform/bounded_queue.hpp",
+        "../../src/platform/thread_pool.cpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    },
+    {
+      "id": "tsan_log",
+      "type": "file_contains",
+      "points": 10,
+      "description": "tsan log captured",
+      "file": "artifacts/ex01_tsan.txt",
+      "regex": "ThreadSanitizer"
+    },
+    {
+      "id": "deadlock_bt",
+      "type": "file_exists",
+      "points": 10,
+      "description": "deadlock backtrace saved",
+      "pattern": "artifacts/ex02_deadlock_bt.txt"
+    },
+    {
+      "id": "shutdown_art",
+      "type": "file_exists",
+      "points": 10,
+      "description": "shutdown test/log",
+      "pattern": "artifacts/ex03*"
+    },
+    {
+      "id": "artifacts",
+      "type": "file_exists",
+      "points": 20,
+      "description": "artifact files present",
+      "pattern": "artifacts/*"
+    }
+  ]
+}

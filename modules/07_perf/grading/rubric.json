@@ -1,0 +1,56 @@
+{
+  "module": "07_perf",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "build release bench",
+      "preset": "release"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 10,
+      "description": "core tests",
+      "preset": "dev"
+    },
+    {
+      "id": "perf_tool",
+      "type": "tool_present",
+      "points": 10,
+      "description": "perf present",
+      "name": "perf",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    },
+    {
+      "id": "perf_stat",
+      "type": "file_exists",
+      "points": 15,
+      "description": "perf baseline log",
+      "pattern": "artifacts/ex01_perf.txt"
+    },
+    {
+      "id": "flamegraph",
+      "type": "file_exists",
+      "points": 20,
+      "description": "flamegraph svg",
+      "pattern": "artifacts/ex02_flame.svg"
+    },
+    {
+      "id": "perf_reg_before",
+      "type": "file_exists",
+      "points": 15,
+      "description": "perf regression before",
+      "pattern": "artifacts/ex03_before.txt"
+    },
+    {
+      "id": "perf_reg_after",
+      "type": "file_exists",
+      "points": 15,
+      "description": "perf regression after",
+      "pattern": "artifacts/ex03_after.txt"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "module": "02_memory",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "build dev",
+      "preset": "dev"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 20,
+      "description": "Module02 tests",
+      "preset": "dev",
+      "regex": "Module02"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "clang-format memory edits",
+      "files": [
+        "../../include/platform/bounded_queue.hpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    },
+    {
+      "id": "bench_art",
+      "type": "file_exists",
+      "points": 10,
+      "description": "benchmark artifact",
+      "pattern": "artifacts/ex01_bench.txt"
+    },
+    {
+      "id": "asan_art",
+      "type": "file_exists",
+      "points": 15,
+      "description": "asan artifact",
+      "pattern": "artifacts/ex02_asan.txt"
+    },
+    {
+      "id": "asan_clean",
+      "type": "file_contains",
+      "points": 20,
+      "description": "asan log clean (no ERROR)",
+      "file": "artifacts/ex02_asan.txt",
+      "regex": "ERROR",
+      "invert": true
+    },
+  {
+    "id": "heaptrack",
+    "type": "file_exists",
+    "points": 5,
+    "description": "heaptrack summary",
+    "pattern": "artifacts/ex03_heaptrack*.txt"
+  },
+  {
+    "id": "bench_content",
+    "type": "file_contains",
+    "points": 5,
+      "description": "bench contains BoundedQueue",
+      "file": "artifacts/ex01_bench.txt",
+      "regex": "BoundedQueue"
+    }
+  ]
+}

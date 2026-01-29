@@ -1,0 +1,69 @@
+{
+  "module": "12_cuda_perf",
+  "checks": [
+    {
+    "id": "build_cuda",
+    "type": "cmake_build",
+    "points": 10,
+    "description": "build cuda",
+    "preset": "cuda",
+    "requires_flag": "cuda",
+    "skip_points": 5
+  },
+  {
+    "id": "nsys_report",
+    "type": "file_exists",
+    "points": 20,
+    "description": "nsys report",
+    "pattern": "artifacts/ex01_nsys.*",
+    "requires_flag": "cuda",
+    "skip_points": 10
+  },
+  {
+    "id": "divergence",
+    "type": "file_exists",
+    "points": 20,
+    "description": "divergence metrics",
+    "pattern": "artifacts/ex02_metrics.txt",
+    "requires_flag": "cuda",
+    "skip_points": 10
+  },
+    {
+      "id": "jetson",
+      "type": "file_exists",
+      "points": 20,
+      "description": "jetson notes",
+      "pattern": "artifacts/ex03_notes.txt"
+    },
+    {
+    "id": "tool_nsys",
+    "type": "tool_present",
+    "points": 10,
+    "description": "nsys present",
+    "name": "nsys",
+    "skip_if_missing_tool": true,
+    "skip_points": 5,
+    "requires_flag": "cuda"
+  },
+    {
+    "id": "tool_cuda",
+    "type": "tool_present",
+    "points": 10,
+    "description": "nvidia-smi present",
+    "name": "nvidia-smi",
+    "skip_if_missing_tool": true,
+    "skip_points": 5,
+    "requires_flag": "cuda"
+  },
+  {
+    "id": "tests",
+    "type": "ctest",
+    "points": 10,
+    "description": "cuda tests",
+    "preset": "cuda",
+    "regex": "CudaStage",
+    "requires_flag": "cuda",
+    "skip_points": 5
+  }
+]
+}

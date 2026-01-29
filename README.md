@@ -36,6 +36,7 @@ Hands-on modern C++20 training repo for autonomy/robotics platform engineers. De
 - `benchmarks/` Google Benchmark
 - `docs/hardware/` SBC + MCU wiring/bring-up
 - `docs/cuda/` CUDA labs and profiling steps
+- `modules/` self-contained training modules (see below)
 - `scripts/` build/test/deploy helpers
 
 ## Failure-mode toggles
@@ -49,3 +50,13 @@ Example: `cmake --preset dev -DPLATFORM_FAILURE_RACE=ON && cmake --build --prese
 
 ## Style / lint
 - Enforced via `.clang-format`, `.clang-tidy`, and `STYLE.md`. Warnings are errors in CI-equivalent workflows.
+
+## Modules
+- Each module lives under `modules/NN_name/` and is self-contained with README, exercises, checklists, starter snippets, artifacts folder, troubleshooting, and references.
+- To run a module:
+  1) Open its `README.md` for setup and exercise table.
+  2) Follow the exercise markdowns in `modules/NN_name/exercises/`.
+  3) Use repo tooling only (`cmake --preset dev/release/...`, scripts in `scripts/`); do not rely on COURSE.md.
+  4) Save logs/outputs to `modules/NN_name/artifacts/` with the naming conventions listed there.
+- Full index: `docs/modules_index.md` (links to every module README).
+- Grade a module: `python3 tools/grader/grade.py --module modules/01_foundations` or grade all with `--all`; add `--json` for machine-readable results.

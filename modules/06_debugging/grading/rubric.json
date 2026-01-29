@@ -1,0 +1,55 @@
+{
+  "module": "06_debugging",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 10,
+      "description": "build asan preset",
+      "preset": "asan"
+    },
+    {
+      "id": "asan_log",
+      "type": "file_contains",
+      "points": 25,
+      "description": "asan log captured",
+      "file": "artifacts/ex01_asan.txt",
+      "regex": "AddressSanitizer"
+    },
+    {
+      "id": "tsan_log",
+      "type": "file_contains",
+      "points": 25,
+      "description": "tsan log captured",
+      "file": "artifacts/ex02_tsan.txt",
+      "regex": "ThreadSanitizer"
+    },
+    {
+      "id": "gdb_log",
+      "type": "file_contains",
+      "points": 20,
+      "description": "gdb remote log",
+      "file": "artifacts/ex03_gdb_remote.log",
+      "regex": "Breakpoint|backtrace|bt"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "format unchanged",
+      "files": [
+        "../../src/platform/pipeline.cpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    },
+    {
+      "id": "tool_gdb",
+      "type": "tool_present",
+      "points": 10,
+      "description": "gdb present",
+      "name": "gdb"
+    }
+  ]
+}

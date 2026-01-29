@@ -361,3 +361,6 @@ Audience: strong C developer, rusty in C++, targeting senior robotics/autonomy/d
 - Hardware evidence: photos/wiring, oscilloscope/logic analyzer captures, systemd logs.
 - Simulation scripts and CI logs.
 - Bug writeups: race, deadlock, UAF, perf regression—cause, fix, proof.
+
+## Module Folders
+- Detailed, step-by-step lab guides live in `modules/NN_name/` (see `docs/modules_index.md`).

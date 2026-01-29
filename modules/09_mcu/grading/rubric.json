@@ -1,0 +1,76 @@
+{
+  "module": "09_mcu",
+  "checks": [
+  {
+    "id": "firmware",
+    "type": "file_exists",
+    "points": 15,
+    "description": "firmware app exists",
+    "pattern": "../../firmware/main/app.c"
+  },
+  {
+    "id": "flash_log",
+    "type": "file_contains",
+    "points": 20,
+    "description": "flash log ticks",
+    "file": "artifacts/ex01_flash.log",
+    "regex": "tick",
+    "requires_flag": "hardware",
+    "skip_points": 10
+  },
+  {
+    "id": "race_log",
+    "type": "file_contains",
+    "points": 20,
+    "description": "race mismatch before fix",
+    "file": "artifacts/ex02_race.log",
+    "regex": "mismatch",
+    "requires_flag": "hardware",
+    "skip_points": 10
+  },
+  {
+    "id": "uart_log",
+    "type": "file_exists",
+    "points": 15,
+    "description": "uart log present",
+    "pattern": "artifacts/ex03_uart.log",
+    "requires_flag": "hardware",
+    "skip_points": 8
+  },
+  {
+    "id": "tool_idf",
+    "type": "tool_present",
+    "points": 10,
+      "description": "idf.py present",
+      "name": "idf.py",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    },
+    {
+      "id": "tool_pyserial",
+      "type": "command",
+      "points": 10,
+      "description": "pyserial import",
+      "cmd": [
+        "python3",
+        "-c",
+        "import serial;print(\"ok\")"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "python3"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "format firmware",
+      "files": [
+        "../../firmware/main/app.c"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    }
+  ]
+}

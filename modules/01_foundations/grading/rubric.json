@@ -1,0 +1,56 @@
+{
+  "module": "01_foundations",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "Configure+build preset dev",
+      "preset": "dev"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 25,
+      "description": "Module01 tests",
+      "preset": "dev",
+      "regex": "Module01"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "clang-format scope_guard/message_bus tests",
+      "files": [
+        "../../include/platform/scope_guard.hpp",
+        "../../tests/test_scope_guard.cpp",
+        "../../tests/test_message_bus.cpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    },
+    {
+      "id": "artifacts",
+      "type": "file_exists",
+      "points": 15,
+      "description": "Artifacts present",
+      "pattern": "artifacts/*"
+    },
+    {
+      "id": "string_view",
+      "type": "file_contains",
+      "points": 20,
+      "description": "publish string_view overload",
+      "file": "../../include/platform/message_bus.hpp",
+      "regex": "publish\\(std::string_view"
+    },
+    {
+      "id": "compiler",
+      "type": "tool_present",
+      "points": 15,
+      "description": "clang++ present",
+      "name": "clang++"
+    }
+  ]
+}

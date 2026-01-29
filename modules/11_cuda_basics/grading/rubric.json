@@ -1,0 +1,68 @@
+{
+  "module": "11_cuda_basics",
+  "checks": [
+    {
+    "id": "build_cuda",
+    "type": "cmake_build",
+    "points": 20,
+    "description": "build cuda",
+    "preset": "cuda",
+    "requires_flag": "cuda",
+    "skip_points": 10
+  },
+  {
+    "id": "ctest_cuda",
+    "type": "ctest",
+    "points": 20,
+    "description": "cuda tests",
+    "preset": "cuda",
+    "regex": "CudaStage",
+    "requires_flag": "cuda",
+    "skip_points": 10
+  },
+    {
+      "id": "env_log",
+      "type": "file_exists",
+      "points": 15,
+      "description": "env log",
+      "pattern": "artifacts/ex01_env.txt"
+    },
+    {
+      "id": "parity_log",
+      "type": "file_exists",
+      "points": 15,
+      "description": "parity log",
+      "pattern": "artifacts/ex02_parity.txt"
+    },
+    {
+      "id": "raii_code",
+      "type": "file_contains",
+      "points": 10,
+      "description": "CudaBuffer present",
+      "file": "../../include/platform/cuda_stage.hpp",
+      "regex": "CudaBuffer"
+    },
+    {
+    "id": "tool_cuda",
+    "type": "tool_present",
+    "points": 10,
+    "description": "nvidia-smi present",
+    "name": "nvidia-smi",
+    "skip_if_missing_tool": true,
+    "skip_points": 5,
+    "requires_flag": "cuda"
+  },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "format cuda headers",
+      "files": [
+        "../../include/platform/cuda_stage.hpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    }
+  ]
+}

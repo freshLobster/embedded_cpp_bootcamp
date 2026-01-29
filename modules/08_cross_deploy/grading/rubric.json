@@ -1,0 +1,68 @@
+{
+  "module": "08_cross_deploy",
+  "checks": [
+    {
+      "id": "cross_build",
+      "type": "cmake_build",
+      "points": 10,
+      "description": "cross preset aarch64",
+      "preset": "aarch64"
+    },
+    {
+      "id": "artifact_file",
+      "type": "file_contains",
+      "points": 20,
+      "description": "file shows aarch64",
+      "file": "artifacts/ex01_file.txt",
+      "regex": "aarch64"
+    },
+  {
+    "id": "deploy_log",
+    "type": "file_exists",
+    "points": 20,
+    "description": "deploy log",
+    "pattern": "artifacts/ex02_run.log",
+    "requires_flag": "hardware",
+    "skip_points": 10
+  },
+  {
+    "id": "latency_pi",
+    "type": "file_exists",
+    "points": 20,
+    "description": "pi latency csv",
+    "pattern": "artifacts/ex03_latency_pi.csv",
+    "requires_flag": "hardware",
+    "skip_points": 10
+  },
+    {
+      "id": "tool_ssh",
+      "type": "tool_present",
+      "points": 10,
+      "description": "ssh present",
+      "name": "ssh",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    },
+    {
+      "id": "tool_scp",
+      "type": "tool_present",
+      "points": 10,
+      "description": "scp present",
+      "name": "scp",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "format unaffected",
+      "files": [
+        "../../src/main.cpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    }
+  ]
+}

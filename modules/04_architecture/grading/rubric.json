@@ -1,0 +1,55 @@
+{
+  "module": "04_architecture",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "build dev",
+      "preset": "dev"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 15,
+      "description": "Module04 tests",
+      "preset": "dev",
+      "regex": "Module04"
+    },
+    {
+      "id": "format",
+      "type": "clang_format_check",
+      "points": 10,
+      "description": "clang-format pipeline/logging edits",
+      "files": [
+        "../../src/platform/pipeline.cpp"
+      ],
+      "skip_if_missing_tool": true,
+      "skip_points": 5,
+      "tool": "clang-format"
+    },
+    {
+      "id": "topic_doc",
+      "type": "file_contains",
+      "points": 15,
+      "description": "topic contract heartbeat added",
+      "file": "../../docs/topic_contract.md",
+      "regex": "health\\.heartbeat"
+    },
+    {
+      "id": "trace_log",
+      "type": "file_exists",
+      "points": 20,
+      "description": "trace log present",
+      "pattern": "artifacts/ex02_trace.log"
+    },
+    {
+      "id": "backpressure",
+      "type": "file_contains",
+      "points": 25,
+      "description": "backpressure markers logged",
+      "file": "artifacts/ex03_backpressure.log",
+      "regex": "backpressure"
+    }
+  ]
+}

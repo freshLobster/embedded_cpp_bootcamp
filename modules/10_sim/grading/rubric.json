@@ -1,0 +1,58 @@
+{
+  "module": "10_sim",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 10,
+      "description": "build dev",
+      "preset": "dev"
+    },
+    {
+      "id": "qemu_log",
+      "type": "file_exists",
+      "points": 20,
+      "description": "qemu log",
+      "pattern": "artifacts/ex01_qemu.log"
+    },
+    {
+      "id": "qemu_sha",
+      "type": "file_exists",
+      "points": 10,
+      "description": "qemu checksum",
+      "pattern": "artifacts/ex01_qemu.sha"
+    },
+    {
+      "id": "renode_log",
+      "type": "file_exists",
+      "points": 20,
+      "description": "renode log",
+      "pattern": "artifacts/ex02_renode.log"
+    },
+    {
+      "id": "sim_test",
+      "type": "file_exists",
+      "points": 20,
+      "description": "ctest sim entry listed",
+      "pattern": "artifacts/ex03_ctest.txt"
+    },
+    {
+      "id": "tool_qemu",
+      "type": "tool_present",
+      "points": 10,
+      "description": "qemu present",
+      "name": "qemu-aarch64",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    },
+    {
+      "id": "tool_renode",
+      "type": "tool_present",
+      "points": 10,
+      "description": "renode present",
+      "name": "renode",
+      "skip_if_missing_tool": true,
+      "skip_points": 5
+    }
+  ]
+}

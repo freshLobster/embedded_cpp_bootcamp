@@ -1,0 +1,57 @@
+{
+  "module": "05_scheduling",
+  "checks": [
+    {
+      "id": "build",
+      "type": "cmake_build",
+      "points": 15,
+      "description": "build release",
+      "preset": "release"
+    },
+    {
+      "id": "tests",
+      "type": "ctest",
+      "points": 20,
+      "description": "Module05 tests",
+      "preset": "dev",
+      "regex": "Module05"
+    },
+    {
+      "id": "latency_csv",
+      "type": "file_exists",
+      "points": 20,
+      "description": "latency csv present",
+      "pattern": "artifacts/ex01_latency.csv"
+    },
+    {
+      "id": "latency_rows",
+      "type": "csv_schema",
+      "points": 15,
+      "description": "latency csv has rows",
+      "file": "artifacts/ex01_latency.csv",
+      "has_header": false,
+      "min_rows": 10
+    },
+  {
+    "id": "timeout_log",
+    "type": "file_exists",
+    "points": 10,
+    "description": "timeout warning logged",
+    "pattern": "artifacts/ex02*.log"
+  },
+  {
+    "id": "priority",
+    "type": "file_exists",
+    "points": 10,
+    "description": "priority timehist logs",
+    "pattern": "artifacts/ex03_*.timehist"
+  },
+  {
+    "id": "tool_python",
+    "type": "tool_present",
+    "points": 10,
+      "description": "python3 present",
+      "name": "python3"
+    }
+  ]
+}
