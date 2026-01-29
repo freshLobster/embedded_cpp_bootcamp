@@ -1,16 +1,18 @@
+#include "platform/logging.hpp"
+#include "platform/pipeline.hpp"
+
 #include <atomic>
 #include <csignal>
 #include <iostream>
 #include <thread>
 
-#include "platform/logging.hpp"
-#include "platform/pipeline.hpp"
-
 namespace {
-std::atomic<bool> running{true};
+    std::atomic<bool> running{true};
 
-void handle_signal(int) { running = false; }
-}  // namespace
+    void handle_signal(int) {
+        running = false;
+    }
+} // namespace
 
 int main() {
     std::signal(SIGINT, handle_signal);

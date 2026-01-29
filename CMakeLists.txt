@@ -85,6 +85,7 @@ enable_testing()
 
 add_executable(platform_core_tests
     tests/test_bounded_queue.cpp
+    tests/test_scope_guard.cpp
     tests/test_message_bus.cpp
     tests/test_scheduler.cpp
     tests/test_cuda_stage.cpp

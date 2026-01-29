@@ -1,13 +1,12 @@
-#include <gtest/gtest.h>
+#include "platform/message_bus.hpp"
 
 #include <atomic>
-
-#include "platform/message_bus.hpp"
+#include <gtest/gtest.h>
 
 TEST(MessageBus, PublishReceives) {
     platform::MessageBus bus;
     std::atomic<int> count{0};
-    bus.subscribe("topic", [&count](const platform::Message&) { count.fetch_add(1); });
+    bus.subscribe("topic", [&count](const platform::Message &) { count.fetch_add(1); });
     platform::Message msg{.topic = "topic", .payload = "data"};
     bus.publish(msg);
     EXPECT_EQ(count.load(), 1);
@@ -16,10 +15,9 @@ TEST(MessageBus, PublishReceives) {
 TEST(MessageBus, Unsubscribe) {
     platform::MessageBus bus;
     std::atomic<int> count{0};
-    auto id = bus.subscribe("topic", [&count](const platform::Message&) { count.fetch_add(1); });
+    auto id = bus.subscribe("topic", [&count](const platform::Message &) { count.fetch_add(1); });
     bus.unsubscribe(id);
     platform::Message msg{.topic = "topic", .payload = "data"};
     bus.publish(msg);
     EXPECT_EQ(count.load(), 0);
 }
-

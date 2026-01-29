@@ -50,6 +50,14 @@ void MessageBus::publish(const Message& msg) const {
     }
 }
 
+void MessageBus::publish(std::string_view topic, std::string_view payload) const {
+    Message msg;
+    msg.topic = std::string(topic);
+    msg.payload = std::string(payload);
+    msg.timestamp = std::chrono::steady_clock::now();
+    publish(msg);
+}
+
 std::size_t MessageBus::subscriber_count(const std::string& topic) const {
     std::shared_lock lock(mutex_);
     auto it = subscribers_.find(topic);
@@ -63,4 +71,3 @@ std::size_t MessageBus::subscriber_count(const std::string& topic) const {
 std::mutex MessageBus::deadlock_mutex_;
 
 }  // namespace platform
-

@@ -7,6 +7,7 @@
 #include <shared_mutex>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -26,6 +27,7 @@ public:
     SubscriptionId subscribe(const std::string& topic, Subscriber cb);
     void unsubscribe(SubscriptionId id);
     void publish(const Message& msg) const;
+    void publish(std::string_view topic, std::string_view payload) const;
 
     std::size_t subscriber_count(const std::string& topic) const;
 
