@@ -1,2 +1,0 @@
-ex01_scope_guard_tests 1 0.00367737
----

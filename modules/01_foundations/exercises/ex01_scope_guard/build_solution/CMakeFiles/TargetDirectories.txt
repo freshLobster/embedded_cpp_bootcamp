@@ -1,4 +1,0 @@
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/01_foundations/exercises/ex01_scope_guard/build_solution/CMakeFiles/ex01_scope_guard_tests.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/01_foundations/exercises/ex01_scope_guard/build_solution/CMakeFiles/test.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/01_foundations/exercises/ex01_scope_guard/build_solution/CMakeFiles/edit_cache.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/01_foundations/exercises/ex01_scope_guard/build_solution/CMakeFiles/rebuild_cache.dir

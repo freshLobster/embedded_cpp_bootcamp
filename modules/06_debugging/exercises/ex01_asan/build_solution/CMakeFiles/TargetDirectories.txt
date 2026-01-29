@@ -1,4 +1,0 @@
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/06_debugging/exercises/ex01_asan/build_solution/CMakeFiles/ex01_asan_tests.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/06_debugging/exercises/ex01_asan/build_solution/CMakeFiles/test.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/06_debugging/exercises/ex01_asan/build_solution/CMakeFiles/edit_cache.dir
-/mnt/f/Documents/FirmwareProjects/practice/embedded_cpp_bootcamp/modules/06_debugging/exercises/ex01_asan/build_solution/CMakeFiles/rebuild_cache.dir
