@@ -10,6 +10,23 @@
 - Verify compiler: `clang++ --version` (expect version output). On Windows native: open "x64 Native Tools" and run `cl /?`.
 - Repo root contains `CMakePresets.json` and `tools/grader/grade.py`.
 
+## Lecture
+
+### Memory resources and polymorphic allocators
+The C++ PMR (polymorphic memory resource) facility separates allocation *behavior* from allocation *sites*. `std::pmr::memory_resource` is an abstract interface for memory resources, and `std::pmr::polymorphic_allocator` uses a `memory_resource` to define how allocations happen at runtime. This lets you keep container types stable while swapping the backing allocator policy without changing template parameters—valuable in embedded systems where the same code must run on a workstation, SBC, and MCU‑class target with different memory constraints. citeturn3view0turn4view1
+
+The `polymorphic_allocator` also propagates allocator awareness to elements constructed by containers (the “uses‑allocator” mechanism), so nested PMR containers share the same resource automatically. That matters in autonomy code where a pipeline stage might carry vectors of strings or messages; allocator propagation ensures the whole object graph draws from the same arena and gives you predictable deallocation behavior. citeturn4view1
+
+### Bounded arenas with monotonic_buffer_resource
+`std::pmr::monotonic_buffer_resource` is a special‑purpose resource designed for very fast allocation when many objects are created and then released all at once. It can be constructed with an initial buffer, and if that buffer is exhausted it can request more memory from an upstream resource; when the resource is destroyed it releases all allocated memory in bulk. This “bump‑pointer” style is ideal for deterministic phases like “build a frame’s data, then discard it,” which shows up constantly in robotics perception pipelines. citeturn4view0
+
+Because the resource releases everything together and is not thread‑safe, it encourages a clear ownership model: one thread or stage owns the arena and explicitly bounds its lifetime. This makes memory consumption and fragmentation far more predictable than unconstrained `new`/`delete` patterns, especially when you pre‑allocate a buffer sized to your worst‑case frame. In embedded deployment, that predictability is a reliability feature, not just an optimization. citeturn4view0
+
+### Lifetime rules, use‑after‑free, and ownership vocabulary
+C++ defines object lifetime precisely: an object’s lifetime begins when storage is obtained and initialization completes, and ends when the destructor starts or the storage is released. Accessing an object after its lifetime ends is undefined behavior, which is the formal basis for “use‑after‑free” bugs that manifest as flaky crashes or silent corruption. For safety‑critical systems, understanding this rule is essential because the bug might only appear under load or in rare timing windows. citeturn7view2
+
+AddressSanitizer is a practical tool for catching these errors—it instruments code and detects use‑after‑free and other memory violations, and it is enabled by compiling with `-fsanitize=address`. In addition, the C++ Core Guidelines recommend expressing ownership with `unique_ptr` or `shared_ptr` and preferring `unique_ptr` unless shared ownership is required, which reduces the surface area for lifetime mistakes. In robotics software where components are composed dynamically and tested under time pressure, combining ownership‑explicit APIs with sanitizer runs is one of the most effective defenses against memory regressions. citeturn6view1turn3view3
+
 ## Start here
 1) Pick one exercise folder below and `cd` into it.
 2) Follow the exercise README exactly; it includes build/test commands and grading steps.
