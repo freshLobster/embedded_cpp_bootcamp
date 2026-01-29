@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+IGNORED_DIRS = {"build", ".git", ".github", ".vscode", ".idea", "out"}
 
 link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
@@ -19,7 +20,11 @@ def normalize(link: str) -> str:
 
 def main() -> int:
     failures = []
-    md_files = list(ROOT.rglob("*.md"))
+    md_files = []
+    for md in ROOT.rglob("*.md"):
+        if any(part in IGNORED_DIRS for part in md.parts):
+            continue
+        md_files.append(md)
     for md in md_files:
         text = md.read_text(encoding="utf-8", errors="ignore")
         for match in link_re.findall(text):

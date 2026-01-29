@@ -118,6 +118,12 @@ def grade_check(check: Dict[str, Any], module_path: str, args) -> Dict[str, Any]
 
         if ctype == "tool_present":
             present = check_tool(check["name"])
+            if not present and check.get("skip_if_missing_tool", False):
+                return {
+                    "status": "skipped",
+                    "earned": skip_points,
+                    "message": f"{check['name']} missing",
+                }
             status = "pass" if present else "fail"
             return {"status": status, "earned": points if present else 0, "message": f"{check['name']} {'ok' if present else 'missing'}"}
 

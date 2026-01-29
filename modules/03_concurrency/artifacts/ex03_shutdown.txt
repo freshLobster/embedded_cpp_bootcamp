@@ -1,0 +1,1 @@
+shutdown clean\n

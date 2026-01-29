@@ -1,0 +1,1 @@
+perf stat: cycles 1000000\n

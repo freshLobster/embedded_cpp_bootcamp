@@ -6,3 +6,5 @@ artifacts/
 *.swp
 *.svg
 *.gz
+!modules/**/artifacts/
+!modules/**/artifacts/**

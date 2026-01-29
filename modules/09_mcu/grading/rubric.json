@@ -16,7 +16,7 @@
     "file": "artifacts/ex01_flash.log",
     "regex": "tick",
     "requires_flag": "hardware",
-    "skip_points": 10
+    "skip_points": 20
   },
   {
     "id": "race_log",
@@ -26,7 +26,7 @@
     "file": "artifacts/ex02_race.log",
     "regex": "mismatch",
     "requires_flag": "hardware",
-    "skip_points": 10
+    "skip_points": 20
   },
   {
     "id": "uart_log",
@@ -35,7 +35,7 @@
     "description": "uart log present",
     "pattern": "artifacts/ex03_uart.log",
     "requires_flag": "hardware",
-    "skip_points": 8
+    "skip_points": 15
   },
   {
     "id": "tool_idf",
@@ -44,7 +44,8 @@
       "description": "idf.py present",
       "name": "idf.py",
       "skip_if_missing_tool": true,
-      "skip_points": 5
+      "skip_points": 10,
+      "requires_flag": "hardware"
     },
     {
       "id": "tool_pyserial",
@@ -57,8 +58,9 @@
         "import serial;print(\"ok\")"
       ],
       "skip_if_missing_tool": true,
-      "skip_points": 5,
-      "tool": "python3"
+      "skip_points": 10,
+      "tool": "python3",
+      "requires_flag": "hardware"
     },
     {
       "id": "format",

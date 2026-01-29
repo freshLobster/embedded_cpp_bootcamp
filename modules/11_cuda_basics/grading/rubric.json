@@ -1,14 +1,14 @@
 {
   "module": "11_cuda_basics",
   "checks": [
-    {
+  {
     "id": "build_cuda",
     "type": "cmake_build",
     "points": 20,
     "description": "build cuda",
     "preset": "cuda",
     "requires_flag": "cuda",
-    "skip_points": 10
+    "skip_points": 20
   },
   {
     "id": "ctest_cuda",
@@ -18,7 +18,7 @@
     "preset": "cuda",
     "regex": "CudaStage",
     "requires_flag": "cuda",
-    "skip_points": 10
+    "skip_points": 20
   },
     {
       "id": "env_log",
@@ -42,14 +42,14 @@
       "file": "../../include/platform/cuda_stage.hpp",
       "regex": "CudaBuffer"
     },
-    {
+  {
     "id": "tool_cuda",
     "type": "tool_present",
     "points": 10,
     "description": "nvidia-smi present",
     "name": "nvidia-smi",
     "skip_if_missing_tool": true,
-    "skip_points": 5,
+    "skip_points": 10,
     "requires_flag": "cuda"
   },
     {

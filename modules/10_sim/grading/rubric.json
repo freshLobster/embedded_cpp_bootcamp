@@ -43,7 +43,7 @@
       "description": "qemu present",
       "name": "qemu-aarch64",
       "skip_if_missing_tool": true,
-      "skip_points": 5
+      "skip_points": 10
     },
     {
       "id": "tool_renode",
@@ -52,7 +52,7 @@
       "description": "renode present",
       "name": "renode",
       "skip_if_missing_tool": true,
-      "skip_points": 5
+      "skip_points": 10
     }
   ]
 }

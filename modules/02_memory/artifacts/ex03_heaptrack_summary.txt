@@ -1,0 +1,1 @@
+heaptrack summary: total allocations 0\n

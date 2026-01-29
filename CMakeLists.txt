@@ -53,18 +53,22 @@ target_compile_options(platform_core
       $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Wconversion>
 )
 
-if(PLATFORM_ENABLE_SANITIZERS AND NOT MSVC)
-    target_compile_options(platform_core PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-    target_link_options(platform_core PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-endif()
+function(platform_apply_sanitizers target)
+    if(PLATFORM_ENABLE_SANITIZERS AND NOT MSVC)
+        target_compile_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+        target_link_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    endif()
+    if(PLATFORM_ENABLE_TSAN AND NOT MSVC)
+        target_compile_options(${target} PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
+        target_link_options(${target} PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
+    endif()
+endfunction()
 
-if(PLATFORM_ENABLE_TSAN AND NOT MSVC)
-    target_compile_options(platform_core PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
-    target_link_options(platform_core PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
-endif()
+platform_apply_sanitizers(platform_core)
 
 add_executable(platform_core_app src/main.cpp)
 target_link_libraries(platform_core_app PRIVATE platform_core)
+platform_apply_sanitizers(platform_core_app)
 
 # CUDA optional stage
 if(PLATFORM_ENABLE_CUDA)
@@ -91,6 +95,7 @@ add_executable(platform_core_tests
     tests/test_cuda_stage.cpp
 )
 target_link_libraries(platform_core_tests PRIVATE platform_core GTest::gtest_main)
+platform_apply_sanitizers(platform_core_tests)
 
 include(GoogleTest)
 gtest_discover_tests(platform_core_tests)
@@ -107,6 +112,7 @@ add_executable(platform_core_bench
     benchmarks/bench_queue.cpp
 )
 target_link_libraries(platform_core_bench PRIVATE platform_core benchmark::benchmark)
+platform_apply_sanitizers(platform_core_bench)
 
 # Install configs for clang-format/clang-tidy convenience
 install(FILES .clang-format .clang-tidy DESTINATION share/platform_core_training)

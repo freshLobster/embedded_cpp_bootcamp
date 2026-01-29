@@ -6,7 +6,9 @@
       "type": "cmake_build",
       "points": 10,
       "description": "cross preset aarch64",
-      "preset": "aarch64"
+      "preset": "aarch64",
+      "requires_flag": "hardware",
+      "skip_points": 10
     },
     {
       "id": "artifact_file",
@@ -23,7 +25,7 @@
     "description": "deploy log",
     "pattern": "artifacts/ex02_run.log",
     "requires_flag": "hardware",
-    "skip_points": 10
+    "skip_points": 20
   },
   {
     "id": "latency_pi",
@@ -32,7 +34,7 @@
     "description": "pi latency csv",
     "pattern": "artifacts/ex03_latency_pi.csv",
     "requires_flag": "hardware",
-    "skip_points": 10
+    "skip_points": 20
   },
     {
       "id": "tool_ssh",

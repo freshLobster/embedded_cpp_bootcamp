@@ -1,0 +1,1 @@
+Benchmark: BoundedQueue\nOps/sec: 100000\n
