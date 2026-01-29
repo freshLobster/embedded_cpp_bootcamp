@@ -65,14 +65,6 @@ void CudaBuffer::reset() {
     }
 }
 
-void vector_add_cpu(const std::vector<float>& a, const std::vector<float>& b, std::vector<float>& out) {
-    const std::size_t n = std::min(a.size(), b.size());
-    out.resize(n);
-    for (std::size_t i = 0; i < n; ++i) {
-        out[i] = a[i] + b[i];
-    }
-}
-
 bool check_cuda_available() {
     int count = 0;
     if (cudaGetDeviceCount(&count) != cudaSuccess) {
@@ -118,4 +110,3 @@ bool vector_add_cuda(const std::vector<float>& a, const std::vector<float>& b, s
 }
 
 }  // namespace platform
-

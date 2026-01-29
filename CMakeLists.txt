@@ -30,6 +30,7 @@ add_library(platform_core
     src/platform/message_bus.cpp
     src/platform/pipeline.cpp
     src/platform/logging.cpp
+    src/platform/cuda_stage_cpu.cpp
 )
 
 target_include_directories(platform_core
