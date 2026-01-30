@@ -1,15 +1,27 @@
 # 07_perf - ex02_flamegraph
 
 ## 1) Title + Mission
-Mission: Build a call-stack-heavy workload and generate a flame graph to visualize hot paths.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
-## 2) What you are building (plain English)
-You are building a function chain that produces a predictable call stack so profiling output maps clearly to code structure.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
-## 3) Why it matters (embedded/robotics/defense relevance)
-Flame graphs provide an intuitive view of where CPU time is spent, making them a standard tool for systems performance work.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
-## 4) Concepts (short lecture)
-Flame graphs are a visualization technique that summarizes stack traces to highlight the dominant costs in a workload.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
+Mission: implement a multi-level call chain that produces a clear stack profile suitable for flamegraph practice. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
 
-A repeatable call structure lets you verify your profiling pipeline before applying it to production workloads.【https://www.brendangregg.com/flamegraphs.html†L212-L212】
+## 2) What you are building (plain English)
+You are building a small stack of functions that call each other in sequence. The goal is to create a call graph with distinct frames so profiling tools show a meaningful stack trace. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+
+## 3) Why it matters (embedded/robotics/defense relevance)
+Profilers are only useful if your code produces meaningful call stacks. In robotics, flamegraphs are used to find hot paths in perception or control pipelines; you must first know how to generate and interpret stack traces. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+
+## 4) Concepts (short lecture)
+Sampling profilers like `perf` collect call stacks periodically and aggregate them. A clean, layered call chain makes it easy to verify that the profiler is working and that symbols are resolved correctly. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+
+Flamegraphs visualize stack traces by collapsing identical call paths. Even a small program can produce a meaningful flamegraph if it has a structured call chain. (Source: [FlameGraph tools](https://github.com/brendangregg/FlameGraph))
+
+Example (not your solution): a call chain with comments.
+```cpp
+int work(int x) { return x * 2; }
+int level3(int x) { return work(x + 1); }
+int level2(int x) { return level3(x + 1); }
+int level1(int x) { return level2(x + 1); }
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -22,7 +34,12 @@ A repeatable call structure lets you verify your profiling pipeline before apply
 Install tools (Ubuntu/WSL2, run once):
 ```
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb
+sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb perf
+```
+
+Verify perf:
+```
+perf --version
 ```
 
 ## 7) Build instructions (learner + solution)
@@ -41,22 +58,50 @@ ctest --test-dir build_solution --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-2) Implement the required logic in `exercise()`.
-3) Rebuild and run tests.
+1) Read `learner/src/main.cpp` and identify the required call chain.
+   The TODO asks for a multi-level call chain. This means at least three nested function calls that are easy to see in a backtrace. Your goal is to build a predictable stack shape, not a complex algorithm. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   - **Expected result:** you can name each function and the order they are called.
+
+2) Implement the lowest-level `work(int)` function first.
+   Keep it simple: return `x * 2` or another deterministic computation. This makes it easy to reason about the expected result when called from higher levels. (Source: [cppreference: expressions](https://en.cppreference.com/w/cpp/language/expressions))
+   - **Expected result:** `work(3)` returns 6.
+
+3) Build the call chain with `level1`, `level2`, `level3`.
+   Each level should increment the input and call the next level, eventually calling `work`. This creates a predictable call stack for profiling tools. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   - **Expected result:** `level1(1)` returns the expected final value.
+
+4) Implement `exercise()` to validate the chain.
+   Call `level1(1)` and verify the output matches the expected value. Return 0 on success and non-zero on failure. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   - **Expected result:** `exercise()` returns 0.
+
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test fails, check each function's arithmetic and the order of calls. (Source: [cppreference: expressions](https://en.cppreference.com/w/cpp/language/expressions))
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+6) Generate a perf profile (optional).
+   Run `perf record -g ./build_learner/ex02_flamegraph` and then `perf report` to view the call stack. If you have FlameGraph tools, you can convert the stack data into a flamegraph. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   - **Expected result:** the call chain appears in the report.
+
+7) Capture artifacts.
+   Save build output to `learner/artifacts/build.log`, test output to `learner/artifacts/ctest.log`, and perf output to `learner/artifacts/perf_report.txt` if you ran perf. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   - **Expected result:** artifacts exist and contain your command outputs.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
 
 ## 10) Artifacts to save
-- `build.log` and `ctest.log` in `learner/artifacts/`.
+- `build.log`, `ctest.log`.
+- `perf_report.txt` if you generated a report.
 
 ## 11) Grade this exercise
 - Learner attempt: `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/07_perf/exercises/ex02_flamegraph`
 - Solution check: `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/07_perf/exercises/ex02_flamegraph --use-solution`
 
 ## 12) If it fails (quick triage)
-See `troubleshooting.md`.
+See `troubleshooting.md`. Quick triage:
+- Build fails: ensure all functions are declared before use.
+- Test fails: re-check the arithmetic in each level.
 
 ## 13) Stretch goals
-- Add an edge-case test.
+- Add one more level to the call chain and observe it in perf.
+- Add a second call path to compare stack profiles.

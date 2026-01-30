@@ -1,15 +1,29 @@
 # 12_cuda_perf - ex02_divergence
 
 ## 1) Title + Mission
-Mission: Measure and reduce control-flow divergence in a GPU-style workload.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
-## 2) What you are building (plain English)
-You are building a small workload that quantifies branch divergence so you can reason about warp efficiency.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
-## 3) Why it matters (embedded/robotics/defense relevance)
-Branch divergence directly reduces throughput on SIMT hardware, making it a first-order performance concern.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
-## 4) Concepts (short lecture)
-The CUDA Best Practices guide includes a dedicated section on branching and divergence, reflecting its importance in GPU performance.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
+Mission: compute average active lanes from warp masks to reason about branch divergence. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
 
-Making divergence visible in a small workload helps you recognize the same pattern in production kernels.【https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html†L232-L232】
+## 2) What you are building (plain English)
+You are building a helper that takes a list of 32-bit masks (one per warp) and computes the average fraction of active lanes. This is a proxy for divergence efficiency. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+
+## 3) Why it matters (embedded/robotics/defense relevance)
+Divergence reduces GPU efficiency. In autonomy pipelines, branch-heavy kernels can underperform and cause latency spikes. Measuring active lanes helps diagnose this. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+
+## 4) Concepts (short lecture)
+NVIDIA GPUs execute threads in warps of 32 lanes. If threads in a warp diverge, some lanes become inactive, reducing effective throughput. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+
+A warp mask is a 32-bit bitset indicating which lanes are active. Counting set bits and dividing by 32 gives the active fraction. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+
+Example (not your solution): popcount and active fraction.
+```cpp
+int popcount32(uint32_t v) {
+    int c = 0;
+    while (v) { v &= v - 1; ++c; }
+    return c;
+}
+double active = static_cast<double>(popcount32(mask)) / 32.0;
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -41,9 +55,25 @@ ctest --test-dir build_solution --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-2) Implement the required logic in `exercise()`.
-3) Rebuild and run tests.
+1) Read `learner/src/main.cpp` and identify the required outputs.
+   You must compute the average active lanes for a set of 32-bit masks. The test uses two masks: all lanes active and none active, so the average should be ~0.5. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   - **Expected result:** you can compute the expected average by hand.
+
+2) Implement `popcount32(uint32_t v)`.
+   Use the classic `v &= v - 1` loop to count set bits. This counts active lanes efficiently and deterministically. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   - **Expected result:** popcount32(0xFFFFFFFF) returns 32, popcount32(0x0) returns 0.
+
+3) Implement `average_active_lanes`.
+   Sum the active fraction for each mask (popcount / 32.0) and divide by the number of masks. Return 0.0 for empty input. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   - **Expected result:** two masks (all active, none active) yield ~0.5.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If tests fail, check that you used floating-point division and not integer division. (Source: [cppreference: floating point arithmetic](https://en.cppreference.com/w/cpp/language/expressions))
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -56,7 +86,10 @@ ctest --test-dir build_solution --output-on-failure
 - Solution check: `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/12_cuda_perf/exercises/ex02_divergence --use-solution`
 
 ## 12) If it fails (quick triage)
-See `troubleshooting.md`.
+See `troubleshooting.md`. Quick triage:
+- Build fails: include `<cstdint>` and `<vector>`.
+- Test fails: check for integer division or incorrect popcount.
 
 ## 13) Stretch goals
-- Add an edge-case test.
+- Add masks with partial activity and compare expected averages.
+- Compute min/max active fraction across masks.

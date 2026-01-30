@@ -1,16 +1,23 @@
+// Solution: RAII buffer with move-only semantics
+// Models safe ownership transfer similar to CUDA buffer wrappers.
+
 #include <cassert>
 #include <cstddef>
 #include <utility>
 
 class CudaBuffer {
 public:
+    // Allocate n elements (zero-initialized if n > 0).
     explicit CudaBuffer(size_t n) : size_(n), data_(n ? new int[n]() : nullptr) {}
+    // Release owned memory on destruction.
     ~CudaBuffer() { delete[] data_; }
     CudaBuffer(const CudaBuffer&) = delete;
     CudaBuffer& operator=(const CudaBuffer&) = delete;
+    // Move transfers ownership and clears the source.
     CudaBuffer(CudaBuffer&& other) noexcept : size_(other.size_), data_(other.data_) { other.size_ = 0; other.data_ = nullptr; }
     CudaBuffer& operator=(CudaBuffer&& other) noexcept {
         if (this != &other) {
+            // Release current buffer before taking ownership of the new one.
             delete[] data_;
             size_ = other.size_;
             data_ = other.data_;
@@ -26,6 +33,8 @@ private:
     int* data_{nullptr};
 };
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     CudaBuffer buf(4);
     if (buf.size() != 4) return 1;
@@ -35,6 +44,7 @@ int exercise() {
 }
 
 int main(){
+    // The solution must transfer ownership safely.
     assert(exercise()==0);
     return 0;
 }

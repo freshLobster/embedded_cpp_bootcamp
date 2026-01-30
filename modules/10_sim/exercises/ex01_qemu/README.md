@@ -1,15 +1,26 @@
 # 10_sim - ex01_qemu
 
 ## 1) Title + Mission
-Mission: Parse QEMU boot logs to verify expected device bring-up in simulation.【https://www.qemu.org/†L98-L98】
-## 2) What you are building (plain English)
-You are building a log parser that recognizes expected boot markers from a QEMU-emulated target.【https://www.qemu.org/†L98-L98】
-## 3) Why it matters (embedded/robotics/defense relevance)
-Simulation enables deterministic reproduction of embedded bring-up issues without hardware in the loop.【https://www.qemu.org/†L98-L98】
-## 4) Concepts (short lecture)
-QEMU is a generic and open source machine emulator and virtualizer, making it a standard tool for embedded simulation.【https://www.qemu.org/†L98-L98】
+Mission: implement a boot log parser that detects successful startup in a QEMU-style log. (Source: [QEMU documentation](https://www.qemu.org/docs/master/))
 
-Parsing boot logs is a practical technique for automated smoke tests in CI and pre-hardware workflows.【https://www.qemu.org/†L98-L98】
+## 2) What you are building (plain English)
+You are building a small function that scans a boot log string and returns true if it contains a "Boot OK" marker. This is a lightweight check used in simulated bring-up pipelines. (Source: [QEMU documentation](https://www.qemu.org/docs/master/))
+
+## 3) Why it matters (embedded/robotics/defense relevance)
+Simulation is used to validate firmware and OS bring-up before hardware is available. Automated log parsing lets CI determine whether a boot succeeded without manual inspection. (Source: [QEMU documentation](https://www.qemu.org/docs/master/))
+
+## 4) Concepts (short lecture)
+QEMU emits console logs during boot. Searching for known markers like "Boot OK" is a common pattern for automated validation. (Source: [QEMU documentation](https://www.qemu.org/docs/master/))
+
+String scanning with `find` is a simple, deterministic way to implement such checks. It avoids regex overhead and is easy to validate in tests. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+
+Example (not your solution): simple boot marker check.
+```cpp
+bool boot_ok(std::string_view log) {
+    return log.find("Boot OK") != std::string_view::npos;
+}
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -22,7 +33,7 @@ Parsing boot logs is a practical technique for automated smoke tests in CI and p
 Install tools (Ubuntu/WSL2, run once):
 ```
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb
+sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb qemu-system
 ```
 
 ## 7) Build instructions (learner + solution)
@@ -41,9 +52,25 @@ ctest --test-dir build_solution --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-2) Implement the required logic in `exercise()`.
-3) Rebuild and run tests.
+1) Read `learner/src/main.cpp` and identify the success condition.
+   The `boot_ok` function should return true only if the log contains the exact substring "Boot OK". This is a deterministic marker used by tests. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** you can state the exact marker string.
+
+2) Implement `boot_ok(std::string_view log)` using `find`.
+   Use `log.find("Boot OK")` and compare against `std::string_view::npos`. This is the simplest and most deterministic implementation for this exercise. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** logs containing the marker return true; logs without it return false.
+
+3) Implement `exercise()` to validate both cases.
+   Test a log containing "Boot OK" and a log containing "Boot FAIL". Return 0 only if the first passes and the second fails. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   - **Expected result:** `exercise()` returns 0 when both checks behave correctly.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If tests fail, verify that you used the exact marker string and did not include extra whitespace. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [QEMU documentation](https://www.qemu.org/docs/master/))
+   - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -56,7 +83,10 @@ ctest --test-dir build_solution --output-on-failure
 - Solution check: `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/10_sim/exercises/ex01_qemu --use-solution`
 
 ## 12) If it fails (quick triage)
-See `troubleshooting.md`.
+See `troubleshooting.md`. Quick triage:
+- Build fails: ensure `<string_view>` is included.
+- Test fails: check the exact marker string.
 
 ## 13) Stretch goals
-- Add an edge-case test.
+- Add support for alternative success markers.
+- Add a function that extracts boot time from a log line.

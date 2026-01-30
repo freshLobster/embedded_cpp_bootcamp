@@ -1,15 +1,29 @@
 # 10_sim - ex02_renode
 
 ## 1) Title + Mission
-Mission: Parse Renode logs to validate peripheral models and boot sequences in simulation.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
-## 2) What you are building (plain English)
-You are building a log parser that identifies peripheral enumeration and boot status markers in a Renode simulation.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
-## 3) Why it matters (embedded/robotics/defense relevance)
-Renode-style virtual development accelerates firmware iteration by providing repeatable, scriptable system tests.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
-## 4) Concepts (short lecture)
-Renode is a virtual development tool for multi-node embedded networks, enabling scalable testing without physical hardware.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
+Mission: parse a Renode-style log and count initialized peripherals to validate simulation setup. (Source: [Renode documentation](https://renode.readthedocs.io/))
 
-Structured log parsing turns simulation outputs into deterministic test signals for CI pipelines.【https://raw.githubusercontent.com/renode/renode/master/README.md†L9-L9】
+## 2) What you are building (plain English)
+You are building a function that counts how many times a keyword appears in a log. This is used to confirm that expected peripherals were initialized in simulation. (Source: [Renode documentation](https://renode.readthedocs.io/))
+
+## 3) Why it matters (embedded/robotics/defense relevance)
+Simulation environments must mirror hardware configuration. A quick log-based check prevents you from running tests on an incorrectly configured model. (Source: [Renode documentation](https://renode.readthedocs.io/))
+
+## 4) Concepts (short lecture)
+Renode emits logs when peripherals are created or attached. Counting these entries is a simple validation technique that can be run in CI. (Source: [Renode documentation](https://renode.readthedocs.io/))
+
+String scanning using `find` in a loop is an efficient and deterministic way to count substring occurrences. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+
+Example (not your solution): count occurrences.
+```cpp
+int count = 0;
+size_t pos = 0;
+while ((pos = log.find(token, pos)) != std::string_view::npos) {
+    ++count;
+    pos += token.size();
+}
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -41,9 +55,25 @@ ctest --test-dir build_solution --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-2) Implement the required logic in `exercise()`.
-3) Rebuild and run tests.
+1) Read `learner/src/main.cpp` and identify the token to count.
+   The log parsing function looks for a specific substring (e.g., "peripheral"). Your job is to count every occurrence in the log string. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** you can name the token and explain why it is important.
+
+2) Implement a loop that repeatedly calls `find`.
+   Start at position 0, call `find(token, pos)`, and if found, increment the count and advance `pos` by `token.size()`. This avoids infinite loops and counts non-overlapping occurrences. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** the counter increments once per token occurrence.
+
+3) Implement `exercise()` to validate the count.
+   Use a short log string containing two "peripheral" lines and ensure the function returns 2. Return 0 for success. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   - **Expected result:** `exercise()` returns 0.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If tests fail, check your loop increment and ensure you are not skipping or double-counting occurrences. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [Renode documentation](https://renode.readthedocs.io/))
+   - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -56,7 +86,10 @@ ctest --test-dir build_solution --output-on-failure
 - Solution check: `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/10_sim/exercises/ex02_renode --use-solution`
 
 ## 12) If it fails (quick triage)
-See `troubleshooting.md`.
+See `troubleshooting.md`. Quick triage:
+- Build fails: ensure `<string_view>` is included.
+- Test fails: check token value and loop logic.
 
 ## 13) Stretch goals
-- Add an edge-case test.
+- Add case-insensitive matching.
+- Add validation for a minimum expected peripheral count.

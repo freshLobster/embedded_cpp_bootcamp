@@ -1,3 +1,6 @@
+// Solution: Shared counter with atomic operations
+// Demonstrates a race-free update pattern for shared state.
+
 #include <cassert>
 #include <atomic>
 #include <thread>
@@ -5,12 +8,17 @@
 
 class SharedCounter {
 public:
+    // Atomic increment; relaxed ordering is sufficient for a simple counter.
     void increment() { value_.fetch_add(1, std::memory_order_relaxed); }
+    // Atomic read of the current value.
     int value() const { return value_.load(std::memory_order_relaxed); }
 private:
+    // Shared state protected by atomic operations.
     std::atomic<int> value_{0};
 };
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     SharedCounter c;
     std::vector<std::jthread> threads;
@@ -25,6 +33,7 @@ int exercise() {
 }
 
 int main(){
+    // The solution must produce the expected final count.
     assert(exercise()==0);
     return 0;
 }

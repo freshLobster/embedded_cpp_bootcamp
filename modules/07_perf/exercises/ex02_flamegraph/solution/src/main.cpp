@@ -1,10 +1,17 @@
+// Solution: Call-chain for flamegraph practice
+// This creates a predictable stack trace for profilers.
+
 #include <cassert>
 
+// Lowest-level work function: deterministic arithmetic.
 int work(int x) { return x * 2; }
+// Each level adds 1 and calls the next level.
 int level3(int x) { return work(x + 1); }
 int level2(int x) { return level3(x + 1); }
 int level1(int x) { return level2(x + 1); }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     int v = level1(1);
     if (v != 8) {
@@ -14,6 +21,7 @@ int exercise() {
 }
 
 int main(){
+    // The solution must produce the expected chain result.
     assert(exercise()==0);
     return 0;
 }

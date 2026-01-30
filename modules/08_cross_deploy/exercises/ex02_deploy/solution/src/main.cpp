@@ -1,11 +1,17 @@
+// Solution: scp command builder
+// Constructs a deterministic deployment command string.
+
 #include <cassert>
 #include <string>
 
 std::string make_scp_cmd(const std::string& user, const std::string& host,
                          const std::string& local, const std::string& remote) {
+    // Format: scp <local> <user>@<host>:<remote>
     return "scp " + local + " " + user + "@" + host + ":" + remote;
 }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     auto cmd = make_scp_cmd("pi", "raspberrypi.local", "./app", "/home/pi/app");
     if (cmd.find("scp ./app pi@raspberrypi.local:/home/pi/app") == std::string::npos) {
@@ -15,6 +21,7 @@ int exercise() {
 }
 
 int main(){
+    // The solution must produce the expected command format.
     assert(exercise()==0);
     return 0;
 }
