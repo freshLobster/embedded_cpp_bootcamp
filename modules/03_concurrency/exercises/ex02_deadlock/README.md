@@ -88,19 +88,20 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read `learner/src/main.cpp` and understand the deadlock scenario.
-   Two threads call `transfer` in opposite directions. If you lock `a.m` then `b.m` in one thread and `b.m` then `a.m` in another, you can deadlock. The fix is to lock both mutexes in one atomic step. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
-   - **Expected result:** you can explain why naive lock ordering can deadlock here.
+1) Read `learner/src/main.cpp` and identify the deadlock risk.
+   Two threads call `transfer(a, b, ...)` and `transfer(b, a, ...)` simultaneously. If you lock one mutex and then the other in each thread, each thread can hold one lock while waiting for the other, creating a deadlock cycle. This is a textbook lock-ordering problem. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
+   - **Expected result:** you can describe the exact lock-order cycle that causes the deadlock.
 
 2) Implement `transfer` using `std::scoped_lock`.
-   Construct `std::scoped_lock lock(a.m, b.m);` to acquire both mutexes safely. Then update balances while the lock is held. This ensures total balance remains constant and prevents deadlock. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
-   - **Expected result:** transfers complete under load without hanging.
+   Construct a single `std::scoped_lock` with both mutexes: `std::scoped_lock lock(a.m, b.m);`. This uses a deadlock-avoidance algorithm to acquire both locks safely. Then perform the balance updates while the lock is held so the transfer is atomic with respect to other transfers. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
+   - **Expected result:** transfers complete without hanging and balances stay consistent.
 
 3) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test hangs, check that you did not use separate `lock()` calls or `std::lock_guard` on each mutex separately. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 4) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

@@ -93,22 +93,23 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the lifetime hazard.
-   The exercise expects a factory that returns a payload. Returning a pointer to a local stack variable would be a use-after-free bug. You must ensure the payload outlives the function call. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
-   - **Expected result:** you can explain why returning `Payload*` to a local object is invalid.
+   The exercise requires a factory that returns a payload. If you returned a pointer or reference to a local variable, the object would be destroyed at function exit and any later access would be use-after-free. Your fix must guarantee the payload outlives the factory scope. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
+   - **Expected result:** you can explain why stack allocation is invalid for the returned payload.
 
-2) Implement `Payload::sum()` as a pure read.
-   Iterate over `data` and accumulate values without modifying the vector. This is the correctness check used by the test. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
-   - **Expected result:** `sum()` returns the expected total for the given data.
+2) Implement `Payload::sum()` as a read-only aggregation.
+   Iterate through `data`, add each value to a local accumulator, and return it. Do not mutate the vector or store state globally. This method is the correctness check used by the tests. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   - **Expected result:** `sum()` returns 15 for the sequence {1,2,3,4,5}.
 
-3) Implement `make_payload()` to allocate on the heap.
-   Use `std::make_unique<Payload>()` to allocate, then fill `data` with values 1..n. Return the `unique_ptr` so ownership transfers to the caller. This prevents use-after-free because the caller controls lifetime. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
-   - **Expected result:** the returned pointer is valid after the function returns.
+3) Implement `make_payload()` with explicit ownership transfer.
+   Allocate the `Payload` on the heap with `std::make_unique<Payload>()`. Populate `data` with values 1..n, then return the `unique_ptr` by value. The returned pointer transfers ownership to the caller and guarantees the data survives beyond the factory call. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** the returned `unique_ptr` is non-null and valid after the function returns.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the build fails, confirm you included `<memory>` and that your function signatures match the declarations. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
-   Save the build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so the grader can verify you ran the commands. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

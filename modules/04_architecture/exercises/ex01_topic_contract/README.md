@@ -89,27 +89,28 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read `parse_contract` in `learner/src/main.cpp` and list the required fields.
-   The contract format is `name:type:rate`. You must parse exactly three fields, reject missing delimiters, and reject empty fields. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
-   - **Expected result:** you can explain why `"invalid"` should return false.
+1) Read `parse_contract` in `learner/src/main.cpp` and restate the contract format.
+   The contract is `name:type:rate`. You must parse exactly three fields separated by `:` and reject anything else. That means `"invalid"` (no delimiters) and `"name:type"` (missing rate) must return false. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** you can describe the valid format and list at least two invalid examples.
 
-2) Split the input by `:` using `string_view::find`.
-   Find the first and second delimiter, then create three views with `substr`. This avoids allocations while you validate the text. (Source: [cppreference: std::string_view::substr](https://en.cppreference.com/w/cpp/string/basic_string_view/substr))
-   - **Expected result:** you can identify name, type, and rate views.
+2) Split the input into three `string_view` segments.
+   Find the first `:` and the second `:`. Use `substr` to create views for the name, type, and rate segments without allocating. This keeps parsing fast and avoids temporary strings until you know the input is valid. (Source: [cppreference: std::string_view::substr](https://en.cppreference.com/w/cpp/string/basic_string_view/substr))
+   - **Expected result:** you can print the three segments for a valid input like `sensor.raw:float:50`.
 
-3) Validate name/type and parse the rate.
-   Ensure name/type are non-empty. Parse the rate by iterating digits; reject non-digits and require a positive value. This strict parsing prevents silent configuration errors. (Source: [cppreference: character classification](https://en.cppreference.com/w/cpp/string/byte/isdigit))
-   - **Expected result:** invalid inputs return false.
+3) Validate each segment before copying.
+   Check that `name` and `type` are non-empty. For the rate, iterate over each character and ensure it is a digit, building the integer value as you go. Reject any non-digit characters and any rate value <= 0. This strict validation prevents silent misconfiguration. (Source: [cppreference: std::isdigit](https://en.cppreference.com/w/cpp/string/byte/isdigit))
+   - **Expected result:** inputs like `sensor.raw:float:0` and `sensor.raw:float:5ms` return false.
 
-4) Assign validated views into the output struct.
-   Convert `string_view` to `std::string` only after validation, then set `rate_hz`. This keeps copies minimal and explicit. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
-   - **Expected result:** output struct fields match the input.
+4) Assign validated fields into the output struct.
+   After validation, copy the `string_view` segments into `std::string` fields of `TopicContract`, then set `rate_hz` to the parsed integer. This is the only point where you allocate and copy, and it happens only for valid inputs. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   - **Expected result:** the output struct fields match the parsed input exactly.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test fails, print the parsed fields in a debugger or temporarily add logging to confirm your delimiters and rate parsing. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` to satisfy grading requirements. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

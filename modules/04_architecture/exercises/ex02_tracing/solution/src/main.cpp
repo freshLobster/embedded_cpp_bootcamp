@@ -1,5 +1,6 @@
 // Solution: Tracing spans
 // Records span durations using std::chrono::steady_clock.
+// The RAII guard guarantees spans close on any exit path.
 
 #include <cassert>  // For assert() in main.
 #include <chrono>   // For steady_clock and durations.
@@ -46,6 +47,7 @@ SpanGuard::~SpanGuard() {
     const auto end = std::chrono::steady_clock::now();
     const auto micros =
         std::chrono::duration_cast<std::chrono::microseconds>(end - start_).count();
+    // Record the span with a stable, monotonic duration.
     tracer_.record(std::move(name_), micros);
 }
 
@@ -53,6 +55,8 @@ SpanGuard Tracer::span(std::string name) { return SpanGuard(*this, std::move(nam
 void Tracer::record(std::string name, long long micros) { spans_.push_back({std::move(name), micros}); }
 const std::vector<Span>& Tracer::spans() const { return spans_; }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     Tracer t;
     {

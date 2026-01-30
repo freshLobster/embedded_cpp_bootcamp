@@ -1,5 +1,6 @@
 // Solution: Deadlock-free transfers
 // Uses std::scoped_lock to lock both mutexes in a deadlock-safe way.
+// This removes the lock-ordering cycle that causes deadlocks.
 
 #include <cassert> // For assert() in main.
 #include <mutex>   // For std::mutex and std::scoped_lock.
@@ -12,11 +13,15 @@ struct Account {
 
 void transfer(Account& a, Account& b, int amount) {
     // scoped_lock locks both mutexes without deadlock (it uses deadlock avoidance).
+    // The lock is released automatically at scope exit.
     std::scoped_lock lock(a.m, b.m);
+    // Perform the transfer while both accounts are locked.
     a.balance -= amount;
     b.balance += amount;
 }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     Account a{{}, 100};
     Account b{{}, 100};

@@ -1,5 +1,6 @@
 // Solution: Interface review (Rule of Five and safe moves)
-// This reference implementation demonstrates correct move-only ownership.
+// This reference implementation demonstrates correct move-only ownership
+// and a safe, predictable moved-from state.
 
 #include <cassert>     // For assert() in main.
 #include <cstddef>     // For size_t.
@@ -8,12 +9,17 @@
 #include <utility>     // For std::move.
 
 // Buffer owns a heap-allocated array and is move-only.
+// Invariants:
+//   1) Copy is disabled to prevent double free.
+//   2) Move transfers ownership.
+//   3) Moved-from objects report size 0 and are safe to destroy.
 class Buffer {
 public:
     explicit Buffer(size_t size)
         : size_(size), data_(size ? std::make_unique<int[]>(size) : nullptr) {}
 
     // Copy disabled to prevent double free.
+    // This enforces unique ownership.
     Buffer(const Buffer&) = delete;
     Buffer& operator=(const Buffer&) = delete;
 
@@ -23,7 +29,8 @@ public:
         other.size_ = 0;
     }
 
-    // Move assignment cleans up and then transfers ownership safely.
+    // Move assignment transfers ownership safely and clears the source size.
+    // std::unique_ptr handles releasing the old buffer automatically.
     Buffer& operator=(Buffer&& other) noexcept {
         if (this != &other) {
             data_ = std::move(other.data_);
@@ -38,6 +45,7 @@ public:
     const int& operator[](size_t idx) const { return data_[idx]; }
 
     // Sum values for verification.
+    // This uses size_ so moved-from objects behave as empty.
     int sum() const {
         int s = 0;
         for (size_t i = 0; i < size_; ++i) {
@@ -51,6 +59,8 @@ private:
     std::unique_ptr<int[]> data_;
 };
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     // Verify type properties at compile time.
     static_assert(!std::is_copy_constructible_v<Buffer>);

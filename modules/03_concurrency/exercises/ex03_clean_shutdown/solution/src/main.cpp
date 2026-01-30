@@ -1,5 +1,6 @@
 // Solution: Clean shutdown worker
 // This implementation drains tasks and exits only after a stop is requested.
+// It uses a condition variable for efficient waiting and a stop token for cancellation.
 
 #include <atomic>              // For std::atomic.
 #include <cassert>             // For assert() in main.
@@ -32,16 +33,20 @@ Worker::~Worker() { stop(); }
 void Worker::enqueue(std::function<void()> task) {
     {
         std::lock_guard<std::mutex> lock(m_);
+        // Publish the task while holding the mutex so the queue stays consistent.
         tasks_.push(std::move(task));
     }
+    // Notify after pushing so the worker wakes to see the new task.
     cv_.notify_one();
 }
 
 void Worker::stop() {
     {
         std::lock_guard<std::mutex> lock(m_);
+        // Mark stopped_ so the worker can exit once the queue is empty.
         stopped_ = true;
     }
+    // Request cooperative stop and wake the worker if it is waiting.
     thread_.request_stop();
     cv_.notify_one();
 }
@@ -51,25 +56,31 @@ void Worker::run(std::stop_token st) {
         std::function<void()> task;
         {
             std::unique_lock<std::mutex> lock(m_);
+            // Sleep until there is work or a stop is requested.
             cv_.wait(lock, [&]() { return stopped_ || !tasks_.empty() || st.stop_requested(); });
 
             if (tasks_.empty()) {
                 if (stopped_ || st.stop_requested()) {
+                    // No work left and stop requested: exit cleanly.
                     break;
                 }
                 continue;
             }
 
+            // Pop one task while holding the lock.
             task = std::move(tasks_.front());
             tasks_.pop();
         }
 
+        // Execute outside the lock to avoid blocking producers.
         if (task) {
             task();
         }
     }
 }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     Worker w;
     std::atomic<int> count{0};

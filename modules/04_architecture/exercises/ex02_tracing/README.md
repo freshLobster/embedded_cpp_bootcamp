@@ -102,23 +102,24 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read `SpanGuard` and `Tracer` in `learner/src/main.cpp`.
-   The guard should record start time on construction and record elapsed time on destruction. This is a classic RAII pattern where the destructor finalizes a measurement. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
-   - **Expected result:** you can describe the lifecycle of a span from begin to end.
+1) Read `SpanGuard` and `Tracer` in `learner/src/main.cpp` and describe the data flow.
+   The guard captures a start timestamp and owns the span name. When it is destroyed, it computes the elapsed time and writes a `Span` record into the tracer. This is a deterministic RAII pattern that ensures spans close even if the scope exits early. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** you can describe exactly when timing starts and when it is recorded.
 
-2) Implement `SpanGuard::~SpanGuard()` to compute duration.
-   Use `steady_clock::now()` for the end time, then compute the difference and convert to microseconds with `duration_cast`. This ensures your timestamps are monotonic and consistent. (Source: [cppreference: std::chrono::duration_cast](https://en.cppreference.com/w/cpp/chrono/duration_cast))
-   - **Expected result:** you can derive a positive duration in microseconds.
+2) Implement `SpanGuard::~SpanGuard()` to compute elapsed time.
+   Use `std::chrono::steady_clock::now()` to capture the end time. Subtract `start_` to get a duration and then `duration_cast` to microseconds. This provides consistent units and ensures the value is monotonic. (Source: [cppreference: std::chrono::duration_cast](https://en.cppreference.com/w/cpp/chrono/duration_cast))
+   - **Expected result:** the computed duration is positive for a non-zero sleep.
 
-3) Call `tracer_.record` with the name and duration.
-   Store spans in the tracer's vector so the test can verify them. Use `std::move` for the name to avoid extra copies. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
-   - **Expected result:** `t.spans()` contains one span with name "io".
+3) Record the span in the tracer.
+   Call `tracer_.record(name_, micros)`. Move the name into the record to avoid extra copies. The tracer should store spans in order so tests can check `spans()[0]`. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** `t.spans()` contains exactly one entry with name "io".
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test fails, check that you used `steady_clock` and that you recorded microseconds (not milliseconds or nanoseconds). (Source: [cppreference: std::chrono::steady_clock](https://en.cppreference.com/w/cpp/chrono/steady_clock))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` for grading. (Source: [cppreference: std::chrono::duration](https://en.cppreference.com/w/cpp/chrono/duration))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

@@ -96,27 +96,28 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read the `Worker` class in `learner/src/main.cpp`.
-   The design uses a condition variable, a task queue, and a `std::jthread` with a stop token. Your task is to connect these pieces so the worker sleeps when idle and exits only after a stop is requested and the queue is empty. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
-   - **Expected result:** you can explain when the worker should wake up and when it should exit.
+1) Read the `Worker` class in `learner/src/main.cpp` and describe its lifecycle.
+   The worker owns a thread (`std::jthread`), a queue of tasks, and a condition variable. The thread should sleep when there is no work, execute tasks when they arrive, and exit only after a stop is requested and the queue is empty. This is a standard producer/consumer pattern with cooperative cancellation. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
+   - **Expected result:** you can state the exact conditions that should wake the worker and the exact condition that should make it exit.
 
-2) Implement `enqueue()` to push work and notify.
-   Lock the mutex, push the task into the queue, then notify the condition variable. This ensures the worker wakes promptly. (Source: [cppreference: std::condition_variable::notify_one](https://en.cppreference.com/w/cpp/thread/condition_variable/notify_one))
-   - **Expected result:** tasks enqueued from the main thread get processed by the worker.
+2) Implement `enqueue()` to safely publish work.
+   Acquire the mutex, push the task into the queue, then release the lock and call `cv_.notify_one()`. The notify must happen after the task is visible in the queue, otherwise the worker could wake and find no work. (Source: [cppreference: std::condition_variable::notify_one](https://en.cppreference.com/w/cpp/thread/condition_variable/notify_one))
+   - **Expected result:** tasks enqueued from the main thread are observed and executed by the worker.
 
-3) Implement `stop()` to request shutdown.
-   Set `stopped_ = true` under the lock, call `thread_.request_stop()`, and notify the condition variable. This wakes the worker and lets it exit once the queue is empty. (Source: [cppreference: std::jthread](https://en.cppreference.com/w/cpp/thread/jthread))
-   - **Expected result:** the worker stops after draining remaining tasks.
+3) Implement `stop()` to request shutdown and wake the worker.
+   Under the lock, set `stopped_ = true`. Then call `thread_.request_stop()` and notify the condition variable. This ensures a sleeping worker wakes up and sees the stop request, but still drains any queued tasks before exiting. (Source: [cppreference: std::jthread](https://en.cppreference.com/w/cpp/thread/jthread))
+   - **Expected result:** the worker stops after draining remaining tasks, not before.
 
-4) Implement `run()` with correct wait logic.
-   Use `cv_.wait(lock, predicate)` to sleep until there is work or a stop request. Drain tasks outside the lock to avoid holding the mutex during execution. Exit only when a stop is requested and the queue is empty. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
-   - **Expected result:** the worker thread does not busy-wait and exits cleanly.
+4) Implement `run()` with a correct wait predicate and drain loop.
+   Use `cv_.wait(lock, predicate)` where the predicate checks `stopped_`, `!tasks_.empty()`, or `st.stop_requested()`. When work is available, pop one task, release the lock, then execute the task outside the critical section. If there is no work and a stop is requested, exit the loop. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
+   - **Expected result:** the worker never busy-waits and exits cleanly when requested.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test hangs, confirm that you notify the condition variable in both `enqueue()` and `stop()`, and that your wait predicate accounts for both work and stop conditions. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so grading can verify your run. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

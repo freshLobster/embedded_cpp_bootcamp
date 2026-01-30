@@ -1,5 +1,6 @@
 // Solution: Topic contract parser (non-owning views)
 // Parses "name:type:rate" using std::string_view for input.
+// Parsing uses views first, then copies only after validation.
 
 #include <cassert>      // For assert() in main.
 #include <string>       // For std::string.
@@ -17,12 +18,15 @@ bool parse_contract(std::string_view text, TopicContract& out) {
     const size_t second = text.find(':', first + 1);
     if (second == std::string_view::npos) return false;
 
+    // Split into three non-owning views.
     std::string_view name = text.substr(0, first);
     std::string_view type = text.substr(first + 1, second - first - 1);
     std::string_view rate = text.substr(second + 1);
 
+    // Validate non-empty fields.
     if (name.empty() || type.empty() || rate.empty()) return false;
 
+    // Parse the rate as a positive integer.
     int value = 0;
     for (char c : rate) {
         if (c < '0' || c > '9') return false;
@@ -30,12 +34,15 @@ bool parse_contract(std::string_view text, TopicContract& out) {
     }
     if (value <= 0) return false;
 
+    // Copy validated fields into the output struct.
     out.name.assign(name);
     out.type.assign(type);
     out.rate_hz = value;
     return true;
 }
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     TopicContract tc;
     if (!parse_contract("sensor.raw:float:50", tc)) return 1;

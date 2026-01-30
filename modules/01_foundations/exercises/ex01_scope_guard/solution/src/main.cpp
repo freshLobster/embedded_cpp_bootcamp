@@ -1,6 +1,7 @@
 // Solution: Scope guard (RAII)
 // This reference implementation shows correct move-only semantics and
-// deterministic cleanup behavior. The comments call out the key invariants.
+// deterministic cleanup behavior. The comments explicitly tie each line
+// to the "exactly once" cleanup invariant.
 
 #include <cassert>    // For assert() in main.
 #include <functional> // For std::function callback storage.
@@ -8,17 +9,22 @@
 
 namespace {
 // ScopeGuard owns a cleanup action and runs it on scope exit if active.
+// Invariants:
+//   1) Cleanup runs exactly once if not dismissed.
+//   2) Cleanup never runs if dismissed.
+//   3) Move transfers ownership and disables the source.
 class ScopeGuard {
 public:
     explicit ScopeGuard(std::function<void()> fn)
         : fn_(std::move(fn)), active_(true) {}
 
     // Copy is disabled to prevent duplicate ownership of cleanup.
+    // If copying were allowed, two guards could attempt the same cleanup.
     ScopeGuard(const ScopeGuard&) = delete;
     ScopeGuard& operator=(const ScopeGuard&) = delete;
 
     // Move transfers ownership; the source guard is dismissed to avoid
-    // double-invocation of the cleanup.
+    // double-invocation of the cleanup. This preserves "exactly once."
     ScopeGuard(ScopeGuard&& other) noexcept
         : fn_(std::move(other.fn_)), active_(other.active_) {
         other.dismiss();
@@ -26,6 +32,7 @@ public:
 
     // Move-assign must clean up any currently-owned resource before
     // overwriting, then take ownership from the source and dismiss it.
+    // This prevents losing the old cleanup or running cleanup twice.
     ScopeGuard& operator=(ScopeGuard&& other) noexcept {
         if (this != &other) {
             if (active_ && fn_) {
@@ -39,6 +46,7 @@ public:
     }
 
     // Destructor executes the cleanup exactly once if still active.
+    // It must not throw or allocate; it must be safe on any exit path.
     ~ScopeGuard() {
         if (active_ && fn_) {
             fn_();
@@ -46,6 +54,7 @@ public:
     }
 
     // Dismiss prevents the cleanup from running later.
+    // This is used when the guarded action completed successfully.
     void dismiss() noexcept { active_ = false; }
 
 private:
@@ -54,6 +63,8 @@ private:
 };
 } // namespace
 
+// exercise() runs a minimal self-check for this solution.
+// Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
     // 1) Basic scope exit.
     bool called = false;

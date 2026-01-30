@@ -88,27 +88,32 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read `learner/src/main.cpp` and identify where the allocator is used.
-   The queue stores data in a `std::pmr::vector`, which accepts a memory resource in its constructor. Your job is to expose that resource and to implement queue operations without breaking allocator ownership. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
-   - **Expected result:** you can point to the constructor line where the resource is injected.
+1) Read `learner/src/main.cpp` and locate the allocator injection point.
+   The `PmrQueue` constructor takes a `std::pmr::memory_resource*` and passes it into `storage_`. This is the key: all allocations performed by `storage_` must come from that resource. Identify exactly where `storage_` is constructed and how the resource is passed in. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
+   - **Expected result:** you can explain how the queue is bound to the memory resource at construction.
 
-2) Implement `PmrQueue::resource()`.
-   The allocator for `std::pmr::vector` is a `polymorphic_allocator`. Call `get_allocator().resource()` to return the resource pointer, which is what the tests check. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
-   - **Expected result:** `q.resource()` matches the resource passed at construction.
+2) Implement `PmrQueue::resource()` to expose the allocator.
+   `std::pmr::vector` uses a `polymorphic_allocator` internally. Call `storage_.get_allocator().resource()` and return it. This is how you prove, at runtime, which resource the queue is using. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
+   - **Expected result:** the test sees the exact same pointer that was passed into the constructor.
 
-3) Implement `push()` and `pop()` using the vector.
-   `push()` should append to the `storage_` vector. `pop()` should return false if the queue is empty; otherwise write the next value to `out` and advance `head_`. This gives FIFO behavior without deleting elements (a simple queue implementation). (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
-   - **Expected result:** pushing 1,2,3 then popping yields 1 then 2.
+3) Implement `push()` with a clear FIFO policy.
+   Append values to `storage_` with `push_back`. This maintains order. Because `storage_` is a PMR container, any growth allocations must come from the provided memory resource. Do not allocate any additional containers in `push()`. (Source: [cppreference: std::vector::push_back](https://en.cppreference.com/w/cpp/container/vector/push_back))
+   - **Expected result:** after three pushes, `storage_` holds {1,2,3} in that order.
 
-4) Implement `size()` as remaining elements.
-   The number of elements remaining is `storage_.size() - head_`. Do not return `storage_.size()` directly, because `head_` may have advanced. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+4) Implement `pop()` using the `head_` index.
+   If `head_` is already at or beyond `storage_.size()`, the queue is empty and you should return false. Otherwise, read `storage_[head_]`, store it in `out`, then increment `head_`. This gives FIFO semantics without erasing elements (a simple, deterministic queue model for the exercise). (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   - **Expected result:** the first pop returns 1, the second returns 2.
+
+5) Implement `size()` as remaining elements.
+   The queue size is `storage_.size() - head_`. This is the number of elements not yet popped. If you return `storage_.size()` directly, your size will be wrong after pops. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
    - **Expected result:** after two pops from three pushes, `size()` returns 1.
 
-5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+6) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If compilation fails, ensure `<memory_resource>` is included and that you didn't accidentally shadow `head_`. (Source: [cppreference: std::pmr::memory_resource](https://en.cppreference.com/w/cpp/memory/memory_resource))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
-6) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+7) Capture artifacts.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so the grader can verify your run. (Source: [cppreference: std::pmr::memory_resource](https://en.cppreference.com/w/cpp/memory/memory_resource))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

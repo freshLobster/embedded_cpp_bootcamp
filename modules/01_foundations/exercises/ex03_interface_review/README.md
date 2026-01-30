@@ -101,27 +101,28 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Inspect the `Buffer` interface in `learner/src/main.cpp`.
-   Notice that copy is deleted and move is declared. Your task is to make the move operations and `sum()` consistent with a move-only owner. This means ownership is transferred, and the moved-from object becomes a valid empty buffer. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
-   - **Expected result:** you can describe the intended "empty after move" state.
+1) Inspect the `Buffer` interface in `learner/src/main.cpp` and restate the ownership model.
+   The type owns heap memory via `std::unique_ptr<int[]>`, so it must be move-only. That means copy is deleted, move is defined, and moved-from objects must be safe to destroy and query. Write down what "safe" means here: `size()` should report 0 after a move, and `sum()` should return 0 because there are no elements. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   - **Expected result:** you can describe how a moved-from `Buffer` should behave.
 
-2) Implement the move constructor.
-   Move the `std::unique_ptr` and copy the `size_`, then set `other.size_ = 0`. This ensures that the moved-from object will not pretend to own elements it no longer owns. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
-   - **Expected result:** moving a buffer transfers ownership and leaves the source empty.
+2) Implement the move constructor with explicit state transfer.
+   Move the `unique_ptr` to transfer ownership of the heap array. Copy `size_` so the new object knows how many elements exist. Then set `other.size_ = 0` so the source reports an empty, valid state. This is the canonical move pattern for owning types. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** moving a buffer transfers the array and empties the source.
 
-3) Implement move assignment with a safe order of operations.
-   First move the pointer, then copy the size. Finally, set `other.size_ = 0`. This mirrors typical move assignment: after the transfer, the source is empty and the destination owns the data. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
-   - **Expected result:** move assignment does not leak or double free.
+3) Implement move assignment in a clear, safe order.
+   First check for self-assignment. Then move the `unique_ptr` into `*this`, copy `size_`, and set `other.size_ = 0`. Because `unique_ptr` handles the old memory automatically, you do not need to delete anything manually. The critical part is leaving the source in a valid empty state. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** move assignment transfers ownership and leaves the source safe to destroy.
 
-4) Implement `sum()` by iterating only up to `size_`.
-   The sum must respect the current size, which will be zero in a moved-from object. This ensures that operations on moved-from objects are safe and predictable. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
-   - **Expected result:** `sum()` returns 0 for an empty/moved-from buffer.
+4) Implement `sum()` using the current `size_`.
+   Iterate from `0` to `size_ - 1` and accumulate values. If `size_` is 0 (e.g., after a move), the loop should do nothing and return 0. This is how you make moved-from objects safe for simple queries. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** `sum()` returns 6 for `{1,2,3}` and 0 for an empty buffer.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If you see a failure, check whether you reset `other.size_` in both move operations and ensure `sum()` uses `size_` rather than a fixed count. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
-   Save the build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log` for grading.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. These logs are required for grading evidence. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

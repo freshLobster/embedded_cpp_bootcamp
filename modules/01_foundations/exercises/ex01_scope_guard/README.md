@@ -114,32 +114,33 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read the ScopeGuard skeleton in `learner/src/main.cpp` and trace the tests in `exercise()`.
-   The tests define the exact behavior: cleanup must run on scope exit, must not run if dismissed, and must still run exactly once after a move. You should be able to articulate which line in `exercise()` is proving which invariant. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
-   - **Expected result:** you can explain the three invariants in plain English and point to the test lines that enforce them.
+1) Read the ScopeGuard skeleton in `learner/src/main.cpp` and map each method to a behavior in `exercise()`.
+   The tests define the contract: (a) cleanup runs on scope exit, (b) cleanup does not run when dismissed, and (c) cleanup runs exactly once after a move. For each check in `exercise()`, write a short note in your own words describing which method must make that check pass. This forces you to reason about invariants before coding. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** you can explain, line by line, which invariants are being tested and which method establishes them.
 
-2) Implement the constructor and `dismiss()` first, because they define the basic state machine.
-   The constructor should store the callable by value and mark the guard as active. `dismiss()` should only flip a flag; it should not invoke the callback. This separates "ownership" (the stored callable) from "should I run it?" (the active flag). (Source: [cppreference: std::function](https://en.cppreference.com/w/cpp/utility/functional/function))
-   - **Expected result:** a guard can be created and dismissed without running cleanup.
+2) Implement the constructor and `dismiss()` to establish the guard's state machine.
+   In the constructor, move the callback into `fn_` and set `active_ = true`. This makes the guard responsible for calling the cleanup later. In `dismiss()`, flip `active_` to false and do nothing else; do not call the callback here. The goal is that "active means will run on destruction" and "dismissed means will never run." This separation keeps ownership (the stored function) independent from the execution decision (the active flag). (Source: [cppreference: std::function](https://en.cppreference.com/w/cpp/utility/functional/function))
+   - **Expected result:** you can create a guard and then call `dismiss()` without invoking the callback.
 
-3) Implement the destructor to enforce the "exactly once" cleanup contract.
-   In a destructor, you must avoid exceptions; just check `active_` and whether the callable is non-empty before invoking it. This is the RAII core: cleanup executes on scope exit no matter how the scope ends. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
-   - **Expected result:** the cleanup runs at end of scope unless dismissed.
+3) Implement the destructor with a strict "exactly once" rule.
+   The destructor should check `active_` first, then check `fn_` is non-empty, then invoke it. Do not throw or allocate in the destructor. You may optionally set `active_ = false` after invoking to make repeated calls impossible in debug builds. This is the core RAII behavior: cleanup runs at scope exit regardless of how the scope ends. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** a guard that reaches scope exit without `dismiss()` will always invoke its callback once.
 
-4) Implement the move constructor.
-   Move must transfer both the callable and the active flag. After moving, dismiss the source guard so it cannot run cleanup. This prevents double cleanup while still allowing transfer of ownership. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
-   - **Expected result:** moved-from guard is inert; moved-to guard owns cleanup.
+4) Implement the move constructor with ownership transfer.
+   Move the callback and copy the active flag from `other`. Immediately call `other.dismiss()` so the moved-from guard is inert. This avoids double invocation when both guards are destroyed. This step makes "exactly once" true even when ownership is transferred mid-scope. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   - **Expected result:** a moved-from guard will not trigger cleanup on destruction; the moved-to guard will.
 
-5) Implement the move assignment operator with "clean up then overwrite."
-   If the current guard is active, run its cleanup before you overwrite its callable. Then move the callable and active flag from the source and dismiss the source. This ordering avoids leaks (skipping cleanup) and avoids double cleanup. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
-   - **Expected result:** move assignment is safe even when the left-hand guard is active.
+5) Implement move assignment using "clean up then overwrite."
+   If `*this` currently owns an active cleanup, you must run it before you overwrite `fn_` and `active_`. Otherwise you would leak a cleanup action. After cleaning up (if needed), move the callback and active flag from `other`, then dismiss `other`. This ordering is crucial: "old resource cleaned, new resource owned." (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** move-assigning onto an active guard does not lose or duplicate cleanup.
 
-6) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
-   - **Expected result:** `ctest` reports `100% tests passed`.
+6) Remove `#error TODO_implement_exercise` and compile.
+   Run the learner build commands. If you hit a compiler error, fix missing includes or signature mismatches first. Only then run `ctest`. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** compilation succeeds and `ctest` reports `100% tests passed`.
 
-7) Capture artifacts.
-   Save the build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log` so the grader can verify evidence of completion.
-   - **Expected result:** the two log files exist and contain your build/test output.
+7) Capture artifacts exactly as the grader expects.
+   Redirect the build output to `learner/artifacts/build.log` and the test output to `learner/artifacts/ctest.log`. These files are evidence that you ran the correct commands. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.

@@ -107,26 +107,27 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the ownership boundary.
-   `MessageBus` owns the subscriber list. `BusView` is just a borrowed window into that list. Any method on `BusView` must be read-only and must not allocate or copy. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
-   - **Expected result:** you can explain why returning `std::string` would violate the "no copies" goal.
+   `MessageBus` owns the `std::vector<std::string>`; `BusView` is only a non-owning lens. That means `BusView` must never allocate or copy, and it must never allow mutation. If you returned `std::string` or a non-const reference, you would either copy or allow modification, both of which violate the contract. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   - **Expected result:** you can explain, in one sentence, why a view must never outlive the bus.
 
-2) Implement `MessageBus::subscribe` to store names.
-   Use `std::move` on the incoming `std::string` to avoid an extra allocation and to make ownership transfer explicit. This mirrors production code where large strings or buffers should not be copied unnecessarily. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
-   - **Expected result:** subscribers are stored and owned by the bus.
+2) Implement `MessageBus::subscribe` to store names with explicit ownership.
+   The parameter is passed by value so the caller can pass an rvalue or lvalue. Inside, move it into `subscribers_` with `push_back(std::move(name))` so the bus becomes the sole owner of the string. This mirrors real systems where message metadata is owned by the bus and should not be duplicated. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** after subscribing, the bus owns the string and no extra copies are made.
 
-3) Implement `MessageBus::view` and `BusView::size`.
-   `view()` should return a `BusView` that points at `subscribers_`. `size()` should safely handle a null pointer by returning zero, because a view can be default-constructed in some APIs. This prevents crashes when a caller holds an empty view. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
-   - **Expected result:** `view.size()` matches `subscribers_.size()` and is safe if the view is empty.
+3) Implement `MessageBus::view` and `BusView::size` with null safety.
+   `view()` should return `BusView(&subscribers_)`. In `BusView::size`, check `subs_` for null and return 0 if it is null. This makes the view safe even if a caller constructs a default view or if a future API returns an empty view. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
+   - **Expected result:** `view.size()` is correct and never crashes when the view is empty.
 
-4) Implement `BusView::at` using `std::string_view`.
-   Return `std::string_view` so callers can inspect without copying or mutating. Do not return `std::string` or non-const references. The test compares string content, so `std::string_view` is sufficient. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
-   - **Expected result:** `view.at(i)` returns a view of the stored string.
+4) Implement `BusView::at` to return `std::string_view`.
+   Access the string in the vector and return a `string_view` that refers to it. Do not return `std::string` or a mutable reference. This ensures zero-copy, read-only access and preserves the bus's ownership boundary. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   - **Expected result:** the returned view compares equal to the stored name but does not allocate.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If compilation fails, double-check that your method signatures match the declarations and that you did not return a temporary `std::string` from `at`. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log` so the grader can verify completion.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so grading can verify your work. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

@@ -88,23 +88,24 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Read `ByPriority` and `Dispatcher` in `learner/src/main.cpp`.
-   You must define a comparator that makes the highest `prio` come out first. Remember: the priority_queue places the "largest" element by comparator at the top. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
-   - **Expected result:** you can explain which direction the comparator should return.
+1) Read `ByPriority` and `Dispatcher` in `learner/src/main.cpp` and restate the ordering.
+   The dispatcher must return the highest priority item first. With `std::priority_queue`, the comparator returns true if the first argument should come *after* the second. This is easy to get backward, so write down the desired ordering before coding. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
+   - **Expected result:** you can explain why the comparator should return true when `a` is lower priority than `b`.
 
-2) Implement `ByPriority::operator()`.
-   Return true when `a` has lower priority than `b`. This makes the queue treat higher priorities as "larger" and pop them first. (Source: [cppreference: Compare](https://en.cppreference.com/w/cpp/named_req/Compare))
+2) Implement `ByPriority::operator()` to enforce "higher priority first."
+   Return `true` when `a.prio < b.prio`. This makes higher `prio` values appear at the top of the priority queue. If you invert this, the dispatcher will run low-priority items first and the test will fail. (Source: [cppreference: Compare](https://en.cppreference.com/w/cpp/named_req/Compare))
    - **Expected result:** items with priority 3 are dispatched before priority 2.
 
-3) Implement `Dispatcher::dispatch_next`.
-   Use `pq_.top()` to read the highest-priority item, then `pop()` to remove it. Return the item by value. (Source: [cppreference: std::priority_queue::top](https://en.cppreference.com/w/cpp/container/priority_queue/top))
-   - **Expected result:** the first dispatch returns the priority-3 item.
+3) Implement `Dispatcher::dispatch_next` using `top()` and `pop()`.
+   Call `pq_.top()` to read the highest-priority item, then call `pq_.pop()` to remove it. Return the item by value. This preserves queue invariants and ensures repeated calls dispatch in priority order. (Source: [cppreference: std::priority_queue::top](https://en.cppreference.com/w/cpp/container/priority_queue/top))
+   - **Expected result:** the first dispatch returns the priority-3 item, the second returns priority-2.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   If the test fails, print the comparator logic in your head again and ensure you did not invert the comparison. (Source: [cppreference: Compare](https://en.cppreference.com/w/cpp/named_req/Compare))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
-   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` for grading. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
