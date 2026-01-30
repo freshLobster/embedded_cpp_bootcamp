@@ -1,31 +1,35 @@
 # 04_architecture - ex02_tracing
 
 ## 1) Title + Mission
-Mission: Implement tracing spans with monotonic timestamps to support deterministic latency analysis.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
+Mission: implement a span guard that records elapsed time using a monotonic clock so latency measurements are deterministic. (Source: [cppreference: std::chrono::steady_clock](https://en.cppreference.com/w/cpp/chrono/steady_clock))
 
 ## 2) What you are building (plain English)
-You are building a span guard that records start and end times using a monotonic clock and stores durations in a tracer.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
+You are building a small tracing utility: create a guard, run some work, and when the guard leaves scope it records how long that work took. This is the backbone of latency instrumentation. (Source: [cppreference: std::chrono::duration](https://en.cppreference.com/w/cpp/chrono/duration))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Tracing is only useful if timestamps are monotonic and comparable; otherwise latency analysis becomes noisy and misleading.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
+Control systems need accurate latency measurements to verify real-time budgets. If your clock jumps backward or forward, your metrics are meaningless. A steady clock avoids these problems and keeps trace data reliable. (Source: [cppreference: std::chrono::steady_clock](https://en.cppreference.com/w/cpp/chrono/steady_clock))
 
 ## 4) Concepts (short lecture)
-`std::chrono::steady_clock` is a monotonic clock whose time points never go backward, which makes it the correct choice for latency measurement.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
+`std::chrono::steady_clock` is a monotonic clock whose time points never go backward. This makes it the correct choice for measuring durations, because system clock adjustments will not affect it. (Source: [cppreference: std::chrono::steady_clock](https://en.cppreference.com/w/cpp/chrono/steady_clock))
 
-`std::chrono::duration` represents a time interval, which is the correct type for computing and storing span lengths.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
+`std::chrono::duration` represents a time interval. Converting from one duration type to another uses `duration_cast`, which makes the unit conversion explicit and safe. (Source: [cppreference: std::chrono::duration](https://en.cppreference.com/w/cpp/chrono/duration))
 
-A span guard is a RAII object that starts timing in its constructor and records the elapsed time in its destructor, guaranteeing the span is closed even on early exits.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
+A span guard is an RAII object: it records the start time in the constructor and the end time in the destructor, ensuring the span closes even on early return. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
 
-Example (not your solution): a span guard that records durations.
+Example (not your solution): RAII span guard with comments.
 ```cpp
 class SpanGuard {
 public:
+    // Start timing at construction.
     SpanGuard(Tracer& t, std::string name)
         : tracer_(t), name_(std::move(name)), start_(std::chrono::steady_clock::now()) {}
     ~SpanGuard() {
+        // Capture end time using a monotonic clock.
         auto end = std::chrono::steady_clock::now();
-        auto micros = std::chrono::duration_cast<std::chrono::microseconds>(end - start_).count();
-        tracer_.record(std::move(name_), micros);
+        // Convert duration to microseconds for storage.
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start_).count();
+        // Record the span name and duration.
+        tracer_.record(std::move(name_), us);
     }
 private:
     Tracer& tracer_;
@@ -60,6 +64,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -85,19 +94,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and inspect the `Tracer` and `SpanGuard` skeletons.
-   - Identify which fields must be stored to compute elapsed time.
-   - **Expected result:** you can explain when a span starts and ends.
-2) Implement the `SpanGuard` constructor.
-   - Capture the name and start time using `steady_clock::now()`.
-   - **Expected result:** start time is saved for later computation.
-3) Implement the `SpanGuard` destructor.
-   - Compute elapsed time in microseconds and record it in the tracer.
-   - **Expected result:** a span is recorded when the guard goes out of scope.
-4) Remove `#error TODO_implement_exercise`, build, and run tests.
-5) Save artifacts.
+1) Read `SpanGuard` and `Tracer` in `learner/src/main.cpp`.
+   The guard should record start time on construction and record elapsed time on destruction. This is a classic RAII pattern where the destructor finalizes a measurement. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   - **Expected result:** you can describe the lifecycle of a span from begin to end.
+
+2) Implement `SpanGuard::~SpanGuard()` to compute duration.
+   Use `steady_clock::now()` for the end time, then compute the difference and convert to microseconds with `duration_cast`. This ensures your timestamps are monotonic and consistent. (Source: [cppreference: std::chrono::duration_cast](https://en.cppreference.com/w/cpp/chrono/duration_cast))
+   - **Expected result:** you can derive a positive duration in microseconds.
+
+3) Call `tracer_.record` with the name and duration.
+   Store spans in the tracer's vector so the test can verify them. Use `std::move` for the name to avoid extra copies. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** `t.spans()` contains one span with name "io".
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -125,9 +147,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you removed `#error` and included `<chrono>`.
+- If tests fail: confirm you used `steady_clock` and `duration_cast` to microseconds.
 
 ## 13) Stretch goals
-- Add a span depth counter to model nested spans.
-- Add a `Tracer::clear()` method and test it.
+- Add nested spans and record parent/child relationships.
+- Add a method to export spans to CSV and save in `learner/artifacts/trace.csv`.

@@ -1,38 +1,29 @@
 # 04_architecture - ex03_backpressure
 
 ## 1) Title + Mission
-Mission: Implement a bounded queue that applies backpressure by rejecting pushes when full.
+Mission: implement a bounded queue that enforces backpressure by dropping items when full and tracking drop counts. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
 
 ## 2) What you are building (plain English)
-You are building a fixed-capacity queue that tracks drops and allows consumers to pop items in FIFO order.
+You are building a fixed-capacity queue that protects the system when producers are faster than consumers. When the queue is full, it drops incoming items and records the drop count. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Backpressure protects real-time pipelines from overload by forcing producers to respect downstream capacity limits.
+Backpressure prevents unbounded memory growth and keeps systems responsive under overload. In autonomy pipelines, dropping less-critical data can be safer than allowing latency to grow without bound. (Source: [C++ Core Guidelines, resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
 
 ## 4) Concepts (short lecture)
-Backpressure is a policy that prevents unbounded growth: when a queue is full, producers must wait or drop. This keeps memory usage bounded and makes overload behavior explicit.
+A bounded queue is a queue with a fixed capacity. When it fills, producers must either block, drop data, or apply another policy. This exercise uses a drop policy for simplicity. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
 
-Even a non-blocking queue with a drop counter gives you a measurable signal of overload. A drop count is often the first indicator that a pipeline stage cannot keep up.
+Tracking drops is important for observability. If you drop data without visibility, you cannot diagnose pipeline overload. A drop counter provides a simple metric that can be exported to telemetry. (Source: [C++ Core Guidelines, resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
 
-Example (not your solution): a simple bounded queue with drop counting.
+Example (not your solution): push with drop tracking.
 ```cpp
-class BoundedQueue {
-public:
-    explicit BoundedQueue(size_t cap) : cap_(cap) {}
-    bool try_push(int v) {
-        if (q_.size() >= cap_) { ++drops_; return false; }
-        q_.push_back(v); return true;
+bool try_push(int v) {
+    if (q_.size() >= cap_) {
+        ++drops_;
+        return false; // drop on overflow
     }
-    bool try_pop(int& out) {
-        if (q_.empty()) return false;
-        out = q_.front(); q_.pop_front(); return true;
-    }
-    size_t drops() const { return drops_; }
-private:
-    size_t cap_;
-    size_t drops_{0};
-    std::deque<int> q_;
-};
+    q_.push_back(v);
+    return true;
+}
 ```
 
 ## 5) Repo context (this folder only)
@@ -61,6 +52,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -86,21 +82,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review the `BoundedQueue` skeleton.
-   - Identify the capacity limit and drop counter.
+1) Read `BoundedQueue` in `learner/src/main.cpp`.
+   The queue has a fixed capacity and a drop counter. Your goal is to implement `try_push` and `try_pop` so the queue behaves predictably under load. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
    - **Expected result:** you can describe what should happen when the queue is full.
-2) Implement `try_push`.
-   - If the queue is at capacity, increment `drops_` and return false.
-   - Otherwise push and return true.
-   - **Expected result:** pushing into a full queue fails predictably.
-3) Implement `try_pop`.
-   - If empty, return false; otherwise pop and return the front element.
-   - **Expected result:** FIFO order is preserved.
-4) Implement `size()` and `drops()` accessors if needed.
-5) Remove `#error TODO_implement_exercise`, build, and run tests.
-6) Save artifacts.
+
+2) Implement `try_push` with a drop policy.
+   If `q_.size()` is greater than or equal to `cap_`, increment `drops_` and return false. Otherwise push and return true. This is a simple backpressure mechanism. (Source: [cppreference: std::deque::push_back](https://en.cppreference.com/w/cpp/container/deque/push_back))
+   - **Expected result:** the third push into a capacity-2 queue returns false and increments drops.
+
+3) Implement `try_pop` for FIFO behavior.
+   If the queue is empty, return false. Otherwise read `front()`, pop it, and return true. (Source: [cppreference: std::deque::pop_front](https://en.cppreference.com/w/cpp/container/deque/pop_front))
+   - **Expected result:** the first pop returns the oldest item (value 1).
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -128,9 +135,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you removed `#error` and included `<deque>`.
+- If tests fail: check the drop counter and FIFO order in `try_pop`.
 
 ## 13) Stretch goals
-- Add a blocking `push` that waits until space is available.
-- Add a test that verifies drop count under load.
+- Add a `peek()` method that inspects the front without popping.
+- Add a `reset_drops()` method and log drops to a CSV file.

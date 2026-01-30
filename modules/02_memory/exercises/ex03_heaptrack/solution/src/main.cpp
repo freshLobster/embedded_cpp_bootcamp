@@ -1,27 +1,31 @@
-#include <cassert>
-#include <vector>
+// Solution: Heap profiling workload
+// This implementation builds a predictable allocation pattern for profiling.
+
+#include <cassert> // For assert() in main.
+#include <vector>  // For allocation workload.
 
 int allocate_and_free(int n) {
-    std::vector<int> v;
-    for (int i = 1; i <= n; ++i) {
-        v.push_back(i);
-    }
     int sum = 0;
-    for (int x : v) {
-        sum += x;
+    for (int i = 1; i <= n; ++i) {
+        // Allocate a vector with predictable size.
+        std::vector<int> v(static_cast<size_t>(i));
+        for (int j = 0; j < i; ++j) {
+            v[static_cast<size_t>(j)] = j + 1;
+            sum += j + 1;
+        }
+        // v is freed at end of loop iteration, creating a clear allocation pattern.
     }
     return sum;
 }
 
 int exercise() {
     int sum = allocate_and_free(4);
-    if (sum != 10) {
-        return 1;
-    }
+    if (sum != 10) return 1; // 1+2+3+4 = 10
     return 0;
 }
 
 int main() {
+    // The solution must satisfy the deterministic workload check.
     assert(exercise() == 0);
     return 0;
 }

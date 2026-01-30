@@ -1,28 +1,30 @@
 # 05_scheduling - ex02_timeout_fallback
 
 ## 1) Title + Mission
-Mission: Implement a timeout wrapper that uses wait_for and returns a fallback on expiry.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
+Mission: implement a timeout wrapper that uses `future::wait_for` and returns a fallback when a task exceeds its deadline. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
 
 ## 2) What you are building (plain English)
-You are building a wrapper around an asynchronous task that waits up to a timeout duration and returns a fallback result if the task is too slow.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
+You are building a helper that runs a task asynchronously and returns either the task result or a fallback value if the task is too slow. This is a simple building block for deadline-aware systems. (Source: [cppreference: std::async](https://en.cppreference.com/w/cpp/thread/async))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Timeouts bound tail latency in control systems and prevent upstream stalls from cascading into missed deadlines.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
+Timeouts bound tail latency so a slow component cannot stall an entire control loop. Returning a fallback keeps the system responsive even when an upstream sensor or service is slow. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
 
 ## 4) Concepts (short lecture)
-`future::wait_for` blocks until a timeout duration has elapsed or the result becomes available. This is the standard building block for timeouts in C++ concurrency.【https://en.cppreference.com/w/cpp/thread/future/wait_for†L476-L476】
+`std::async` launches a function asynchronously and returns a `std::future`. The future holds the eventual result and provides synchronization with `wait_for` or `get`. (Source: [cppreference: std::async](https://en.cppreference.com/w/cpp/thread/async))
 
-`std::async` runs a function asynchronously (often on a separate thread), which is why it pairs naturally with `wait_for` when you need a timeout boundary.【https://en.cppreference.com/w/cpp/thread/async†L473-L473】
+`future::wait_for` blocks until the result is ready or a timeout expires. It returns a status that lets you decide whether to return the real result or a fallback. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
 
-A timeout wrapper must return a deterministic fallback when the task is late. This gives the caller a predictable worst-case behavior instead of indefinite blocking.
-
-Example (not your solution): wrap a task with `std::async` and `wait_for`.
+Example (not your solution): run a task with a timeout.
 ```cpp
-int run_with_timeout(std::function<int()> fn, std::chrono::milliseconds timeout, int fallback) {
-    auto fut = std::async(std::launch::async, std::move(fn));
-    if (fut.wait_for(timeout) == std::future_status::ready) return fut.get();
-    return fallback;
+// Launch a task asynchronously.
+auto fut = std::async(std::launch::async, [] { return 42; });
+// Wait for up to 5ms for completion.
+if (fut.wait_for(5ms) == std::future_status::ready) {
+    // Task finished in time; return the real result.
+    return fut.get();
 }
+// Timeout expired; return fallback instead.
+return fallback;
 ```
 
 ## 5) Repo context (this folder only)
@@ -51,6 +53,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -76,17 +83,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review the `run_with_timeout` stub.
-   - Identify the inputs (callable, timeout, fallback) and the required behavior.
-   - **Expected result:** you can explain what happens when the task is late.
-2) Implement the asynchronous call and waiting logic.
-   - Use `std::async` with `std::launch::async`.
-   - Use `wait_for` to compare against the timeout.
-   - **Expected result:** fast tasks return their value; slow tasks return fallback.
-3) Remove `#error TODO_implement_exercise`, build, and run tests.
-4) Save artifacts.
+1) Read `run_with_timeout` in `learner/src/main.cpp`.
+   The function must run a task asynchronously and return either the result or a fallback if the timeout expires. This is a direct application of `std::future::wait_for`. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
+   - **Expected result:** you can describe the success and timeout paths.
+
+2) Launch the task with `std::async`.
+   Use `std::launch::async` to force asynchronous execution, then store the returned future. (Source: [cppreference: std::async](https://en.cppreference.com/w/cpp/thread/async))
+   - **Expected result:** you have a future that represents the running task.
+
+3) Wait for the result with `wait_for`.
+   If `wait_for(timeout)` returns `std::future_status::ready`, call `get()` and return the result. Otherwise return the fallback. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
+   - **Expected result:** fast tasks return their real result; slow tasks return the fallback.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -114,9 +136,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you included `<future>` and removed `#error`.
+- If tests fail: confirm you used `wait_for` and return fallback on timeout.
 
 ## 13) Stretch goals
-- Add a timeout status enum and return it alongside the result.
-- Add a test that uses a very short timeout to force the fallback path.
+- Add a timeout error code enum rather than an integer fallback.
+- Add a variant that accepts a cancellation token and cancels the task if possible.

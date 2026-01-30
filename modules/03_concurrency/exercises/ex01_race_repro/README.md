@@ -1,25 +1,31 @@
 # 03_concurrency - ex01_race_repro
 
 ## 1) Title + Mission
-Mission: Implement a thread-safe counter using atomic operations to eliminate data races under parallel increments.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
+Mission: implement a thread-safe counter using `std::atomic` to eliminate data races under concurrent increments. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
 
 ## 2) What you are building (plain English)
-You are building a counter that remains correct under concurrent updates by multiple threads using atomic operations instead of unsynchronized reads/writes.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
+You are building a counter that multiple threads can increment at the same time without losing updates. The goal is correct results under concurrency without using locks. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Data races can silently corrupt state in robotics pipelines; atomics provide a low-level, deterministic fix for simple shared counters.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
+Shared counters are common in telemetry, diagnostics, and scheduling. If they are not atomic, you can silently drop increments, leading to incorrect health reports or missed deadlines. Atomics provide correctness with minimal overhead. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
 
 ## 4) Concepts (short lecture)
-`std::atomic` provides atomic operations for integral types, enabling safe concurrent increments without external locking. This prevents undefined behavior caused by data races on shared variables.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
+A data race occurs when two threads access the same memory location concurrently and at least one access is a write, without synchronization. In C++, data races cause undefined behavior. `std::atomic` provides synchronized operations that eliminate data races for simple shared state. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
 
-Atomics are ideal for simple counters, flags, and sequence numbers that are shared between threads. They are cheaper than coarse-grained locks and still provide correctness for basic patterns.【https://en.cppreference.com/w/cpp/atomic/atomic†L603-L603】
+Atomic operations like `fetch_add` and `load` perform indivisible read-modify-write or read actions. For counters, this ensures increments are not lost when many threads update the same variable. (Source: [cppreference: std::atomic::fetch_add](https://en.cppreference.com/w/cpp/atomic/atomic/fetch_add))
 
-Example (not your solution): a simple atomic counter.
+Example (not your solution): a minimal atomic counter with comments.
 ```cpp
 class Counter {
 public:
-    void increment() { value_.fetch_add(1); }
-    int value() const { return value_.load(); }
+    void increment() {
+        // fetch_add atomically increments the counter.
+        value_.fetch_add(1);
+    }
+    int value() const {
+        // load reads the current value atomically.
+        return value_.load();
+    }
 private:
     std::atomic<int> value_{0};
 };
@@ -51,6 +57,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -76,16 +87,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review the `Counter` skeleton.
-   - Identify where atomic operations should replace plain integer reads/writes.
-   - **Expected result:** you can explain why a plain `int` is unsafe here.
-2) Implement `increment()` and `value()` using atomic operations.
-   - Use `fetch_add` for increments and `load` for reads.
-   - **Expected result:** increments are thread-safe.
-3) Remove `#error TODO_implement_exercise`, build, and run tests.
-4) Save artifacts.
+1) Read `learner/src/main.cpp` and locate the shared state.
+   The `Counter` class stores a `std::atomic<int>` value. Your goal is to implement `increment()` and `value()` using atomic operations so that concurrent updates are safe. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   - **Expected result:** you can explain why plain `int` would be unsafe in this test.
+
+2) Implement `Counter::increment()` with `fetch_add`.
+   `fetch_add(1)` performs an atomic read-modify-write that cannot be interleaved with another thread's increment. This prevents lost updates. (Source: [cppreference: std::atomic::fetch_add](https://en.cppreference.com/w/cpp/atomic/atomic/fetch_add))
+   - **Expected result:** each thread contributes exactly `kIters` increments.
+
+3) Implement `Counter::value()` with `load`.
+   `load()` returns the current value atomically. This prevents torn reads and ensures you see a consistent integer value. (Source: [cppreference: std::atomic::load](https://en.cppreference.com/w/cpp/atomic/atomic/load))
+   - **Expected result:** the final value equals `kThreads * kIters`.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -113,9 +140,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: confirm you removed `#error` and included `<atomic>`.
+- If tests fail: ensure you used `fetch_add` and `load`, not non-atomic operations.
 
 ## 13) Stretch goals
-- Add a second counter that uses a mutex and compare performance under load.
-- Track the expected final count in `exercise()` and assert it.
+- Add a second counter using a mutex and compare overhead.
+- Add a test that checks behavior under more threads or iterations.

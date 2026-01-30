@@ -1,31 +1,32 @@
 # 03_concurrency - ex03_clean_shutdown
 
 ## 1) Title + Mission
-Mission: Implement a worker thread that drains work and shuts down cleanly using condition variables and cooperative cancellation.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
+Mission: implement a worker thread that drains tasks and shuts down cleanly using a condition variable and cooperative stop. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
 
 ## 2) What you are building (plain English)
-You are building a worker that blocks on a condition variable, processes tasks, and exits when a stop request is issued.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
+You are building a worker that blocks while idle, processes tasks when they arrive, and exits only after all work is done and a stop has been requested. This is a standard building block for robotics pipelines. (Source: [cppreference: std::jthread](https://en.cppreference.com/w/cpp/thread/jthread))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Safe shutdown is as important as fast startup; autonomous systems must stop cleanly without losing data or leaving threads running.【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
+Clean shutdown is critical in mission systems: threads must not outlive their owners, and work must not be dropped silently. A deterministic shutdown path prevents resource leaks and inconsistent state during system stop. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
 
 ## 4) Concepts (short lecture)
-`std::condition_variable` is a synchronization primitive that blocks a thread until a condition becomes true, then wakes it. It is the standard way to implement producer/consumer queues without busy-waiting.【https://en.cppreference.com/w/cpp/thread/condition_variable†L477-L477】
+`std::condition_variable` allows a thread to sleep until a condition is met, avoiding busy-waiting. It is the standard mechanism for producer/consumer queues where workers wait for tasks. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
 
-`std::jthread` represents a joinable thread that can be requested to stop via a stop token. It integrates a clean shutdown path into the thread object itself and ensures the thread is joined on destruction.【https://en.cppreference.com/w/cpp/thread/jthread†L460-L460】
+`std::jthread` is a C++20 thread that joins on destruction and can receive a stop request through `std::stop_token`. This encourages cooperative cancellation: the worker checks the token and exits cleanly. (Source: [cppreference: std::jthread](https://en.cppreference.com/w/cpp/thread/jthread))
 
-Example (not your solution): a worker loop that drains tasks until stop is requested.
+Example (not your solution): worker loop using condition variables with explicit comments.
 ```cpp
-void run(std::stop_token st) {
-    while (!st.stop_requested()) {
-        std::function<void()> task;
-        {
-            std::unique_lock<std::mutex> lock(m_);
-            cv_.wait(lock, [&] { return st.stop_requested() || !tasks_.empty(); });
-            if (st.stop_requested() && tasks_.empty()) break;
-            task = std::move(tasks_.front());
-            tasks_.pop();
+void worker_loop(std::stop_token st) {
+    for (;;) {
+        std::unique_lock<std::mutex> lock(m_);
+        // Wait until there is work or a stop request.
+        cv_.wait(lock, [&] { return st.stop_requested() || !tasks_.empty(); });
+        if (tasks_.empty() && st.stop_requested()) {
+            break; // clean shutdown
         }
+        auto task = std::move(tasks_.front());
+        tasks_.pop();
+        lock.unlock();
         task();
     }
 }
@@ -57,6 +58,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -82,23 +88,36 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review the `Worker` skeleton.
-   - Identify which data members need to be protected by a mutex.
-   - **Expected result:** you can describe how tasks move from the queue to execution.
-2) Implement `enqueue` to push tasks and notify the worker.
-   - Hold the lock while modifying the queue.
-   - **Expected result:** enqueued tasks wake the worker thread.
-3) Implement `run` to wait on the condition variable and drain tasks.
-   - Wait until either a stop is requested or the queue is non-empty.
-   - Exit when stop is requested and the queue is empty.
-   - **Expected result:** tasks execute, and shutdown is clean.
-4) Implement `stop` to request stop and notify the worker.
-   - Ensure repeated calls are safe.
-   - **Expected result:** worker thread exits without deadlock.
-5) Remove `#error TODO_implement_exercise`, build, and run tests.
-6) Save artifacts.
+1) Read the `Worker` class in `learner/src/main.cpp`.
+   The design uses a condition variable, a task queue, and a `std::jthread` with a stop token. Your task is to connect these pieces so the worker sleeps when idle and exits only after a stop is requested and the queue is empty. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
+   - **Expected result:** you can explain when the worker should wake up and when it should exit.
+
+2) Implement `enqueue()` to push work and notify.
+   Lock the mutex, push the task into the queue, then notify the condition variable. This ensures the worker wakes promptly. (Source: [cppreference: std::condition_variable::notify_one](https://en.cppreference.com/w/cpp/thread/condition_variable/notify_one))
+   - **Expected result:** tasks enqueued from the main thread get processed by the worker.
+
+3) Implement `stop()` to request shutdown.
+   Set `stopped_ = true` under the lock, call `thread_.request_stop()`, and notify the condition variable. This wakes the worker and lets it exit once the queue is empty. (Source: [cppreference: std::jthread](https://en.cppreference.com/w/cpp/thread/jthread))
+   - **Expected result:** the worker stops after draining remaining tasks.
+
+4) Implement `run()` with correct wait logic.
+   Use `cv_.wait(lock, predicate)` to sleep until there is work or a stop request. Drain tasks outside the lock to avoid holding the mutex during execution. Exit only when a stop is requested and the queue is empty. (Source: [cppreference: std::condition_variable](https://en.cppreference.com/w/cpp/thread/condition_variable))
+   - **Expected result:** the worker thread does not busy-wait and exits cleanly.
+
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+6) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -126,9 +145,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure `<condition_variable>` and `<thread>` are included and `#error` removed.
+- If tests hang: verify you notify the condition variable on enqueue and on stop.
 
 ## 13) Stretch goals
-- Add a bounded queue and have `enqueue` block when full.
-- Add metrics for queue depth and number of tasks processed.
+- Add a bounded queue size and backpressure behavior.
+- Add a timeout to the wait predicate and collect idle time metrics.

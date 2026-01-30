@@ -1,22 +1,23 @@
 # 03_concurrency - ex02_deadlock
 
 ## 1) Title + Mission
-Mission: Implement deadlock-free transfers by acquiring multiple mutexes safely with a scoped lock.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
+Mission: implement deadlock-free transfers by locking multiple mutexes safely using `std::scoped_lock`. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
 
 ## 2) What you are building (plain English)
-You are building a transfer function that locks two accounts without deadlock, using a single scoped lock to acquire both mutexes consistently.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
+You are building a transfer function that moves funds between two accounts while two threads run in opposite directions. Your job is to lock both accounts without deadlock. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Deadlocks halt autonomy pipelines under load; structured lock acquisition makes the failure mode impossible rather than unlikely.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
+Deadlocks freeze control loops and can bring down autonomous systems under load. The safest way to prevent them is to structure your code so deadlock is impossible, not just unlikely. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
 
 ## 4) Concepts (short lecture)
-`std::scoped_lock` can lock multiple mutexes at once and releases them automatically when the lock object goes out of scope. This avoids deadlocks that can occur when two threads lock the same mutexes in different orders.【https://en.cppreference.com/w/cpp/thread/scoped_lock†L470-L470】
+Deadlock happens when two threads each hold a lock and wait for the other lock, creating a cycle. The typical cause is locking resources in inconsistent order. (Source: [cppreference: std::mutex](https://en.cppreference.com/w/cpp/thread/mutex))
 
-Deadlock avoidance is an architectural concern. If every transfer function uses the same lock acquisition strategy, the system cannot form a cycle of waiting threads.
+`std::scoped_lock` can lock multiple mutexes at once using a deadlock-avoidance algorithm. It also unlocks automatically when it goes out of scope, which aligns with RAII practices. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
 
-Example (not your solution): locking two accounts safely.
+Example (not your solution): lock two mutexes with a single `scoped_lock`.
 ```cpp
-void transfer(Account& a, Account& b, int amount) {
+void safe_transfer(Account& a, Account& b, int amount) {
+    // scoped_lock atomically acquires both mutexes.
     std::scoped_lock lock(a.m, b.m);
     a.balance -= amount;
     b.balance += amount;
@@ -49,6 +50,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -74,16 +80,28 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and inspect the `Account` and `transfer` stubs.
-   - Identify where both mutexes must be held simultaneously.
-   - **Expected result:** you can explain why naive lock ordering can deadlock.
-2) Implement `transfer` using a single `std::scoped_lock`.
-   - Do not lock one mutex at a time.
-   - **Expected result:** transfers complete without deadlock.
-3) Remove `#error TODO_implement_exercise`, build, and run tests.
-4) Save artifacts.
+1) Read `learner/src/main.cpp` and understand the deadlock scenario.
+   Two threads call `transfer` in opposite directions. If you lock `a.m` then `b.m` in one thread and `b.m` then `a.m` in another, you can deadlock. The fix is to lock both mutexes in one atomic step. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
+   - **Expected result:** you can explain why naive lock ordering can deadlock here.
+
+2) Implement `transfer` using `std::scoped_lock`.
+   Construct `std::scoped_lock lock(a.m, b.m);` to acquire both mutexes safely. Then update balances while the lock is held. This ensures total balance remains constant and prevents deadlock. (Source: [cppreference: std::scoped_lock](https://en.cppreference.com/w/cpp/thread/scoped_lock))
+   - **Expected result:** transfers complete under load without hanging.
+
+3) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+4) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -111,9 +129,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you included `<mutex>` and removed `#error`.
+- If tests hang: verify you used `std::scoped_lock` and not separate `lock()` calls.
 
 ## 13) Stretch goals
-- Add a check to prevent overdraft and return a status code.
-- Add a test that performs many transfers in both directions.
+- Add a transfer validation that rejects negative balances.
+- Add a stress test with more threads and a larger iteration count.

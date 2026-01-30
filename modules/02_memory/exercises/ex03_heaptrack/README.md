@@ -1,27 +1,33 @@
 # 02_memory - ex03_heaptrack
 
 ## 1) Title + Mission
-Mission: Implement a repeatable allocation workload and capture heap profiling artifacts from the run.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
+Mission: build a deterministic allocation workload and collect heap profiling artifacts that prove memory behavior over time. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
 
 ## 2) What you are building (plain English)
-You are building a deterministic allocation workload and then recording its heap footprint so you can compare runs and reason about memory growth.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
+You are building a tiny program that performs predictable allocations and then recording its heap usage with profiling tools. The goal is to make memory growth visible and repeatable. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Heap growth is a reliability risk in long-running autonomy software; profiling shows where memory expands and which patterns cause fragmentation.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
+Long-running autonomy software must avoid slow memory growth and fragmentation. Profiling lets you catch leaks and unexpected spikes early, before they appear in the field. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
 
 ## 4) Concepts (short lecture)
-Massif is a heap profiler that measures how much heap memory a program uses. It is designed for comparing allocation behavior across runs and spotting unexpected growth.【https://valgrind.org/docs/manual/ms-manual.html†L106-L106】
+Heap profiling measures how much memory a program allocates over time. A deterministic workload makes it possible to compare runs and spot regressions. If your workload is random, your results will be noisy and unreliable. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
 
-A profiling workload must be deterministic: same input, same number of allocations, and the same lifetime boundaries. If the workload is noisy, the profiler output is not actionable.
+Valgrind Massif is a heap profiler that records snapshots of heap usage and can be visualized with `ms_print`. It is especially useful on Linux when you need a low-dependency memory profile. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
 
-Example (not your solution): a deterministic allocation loop that allocates, uses, and releases memory within scope.
+Example (not your solution): a deterministic allocation loop with comments explaining why it is stable across runs.
 ```cpp
-int allocate_and_sum(int n) {
-    std::vector<int> v;
-    for (int i = 0; i < n; ++i) v.push_back(i);
+int workload(int n) {
     int sum = 0;
-    for (int x : v) sum += x;
-    return sum; // v is freed when it goes out of scope
+    for (int i = 1; i <= n; ++i) {
+        // Allocate a vector of predictable size each iteration.
+        std::vector<int> v(static_cast<size_t>(i));
+        for (int j = 0; j < i; ++j) {
+            v[static_cast<size_t>(j)] = j + 1;
+            sum += j + 1;
+        }
+        // v is freed here, creating a clear allocation/deallocation pattern.
+    }
+    return sum;
 }
 ```
 
@@ -37,12 +43,7 @@ int allocate_and_sum(int n) {
 Install tools (Ubuntu/WSL2, run once):
 ```
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb
-```
-
-Optional heap profiling:
-```
-sudo apt-get install -y valgrind
+sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb valgrind
 ```
 
 Run these in **this exercise folder**:
@@ -56,6 +57,17 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
+
+Verify Valgrind is available (optional but recommended):
+```
+valgrind --version
+```
+Expected output: a version string such as `valgrind-3.18.x`.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -81,17 +93,33 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and find the allocation workload stub.
-   - The function should allocate, use the data, and return a deterministic result.
-   - **Expected result:** you can predict the sum for a given input.
-2) Implement the workload using `std::vector`.
-   - Ensure allocations happen inside the function so lifetime is bounded.
-   - **Expected result:** the function returns the correct sum and frees memory when it returns.
-3) Update `exercise()` to validate the workload and remove `#error`.
-4) Build and run tests.
-5) Save artifacts and, if you have Massif, capture a heap profile run.
+1) Read `learner/src/main.cpp` and understand the required sum.
+   The test uses `allocate_and_free(4)` and expects the sum to be 10, which is 1+2+3+4. This tells you the exact data pattern the workload should generate. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
+   - **Expected result:** you can explain why the sum must be 10.
+
+2) Implement a deterministic allocation workload in `allocate_and_free`.
+   Allocate a vector of size `i` for each loop iteration and fill it with 1..i. Accumulate the values into a sum and return it. This creates a stable allocation pattern that profiling tools can capture. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   - **Expected result:** the function returns the correct sum and allocates the same pattern every run.
+
+3) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+4) Run heap profiling and save artifacts.
+   If Valgrind is available, run Massif and save the output to `learner/artifacts/massif.out`.
+   ```
+   valgrind --tool=massif --massif-out-file=learner/artifacts/massif.out ./build_learner/ex03_heaptrack
+   ms_print learner/artifacts/massif.out > learner/artifacts/massif.txt
+   ```
+   If Valgrind is not available, save the normal program output to `learner/artifacts/heap_profile.txt`.
+   - **Expected result:** the artifact files exist and contain heap profile data.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -101,11 +129,7 @@ Expected output: `100% tests passed`.
 Place these in `learner/artifacts/`:
 - `build.log` - stdout/stderr from the build step.
 - `ctest.log` - stdout/stderr from the test step.
-Example snippet for `ctest.log`:
-```
-1/1 Test #1: ...   Passed
-100% tests passed, 0 tests failed out of 1
-```
+- `massif.out` and `massif.txt` (if Valgrind available) or `heap_profile.txt` (fallback).
 
 ## 11) Grade this exercise
 - Learner attempt:
@@ -113,15 +137,15 @@ Example snippet for `ctest.log`:
 - Solution check:
   `python3 ../../../../tools/grader/grade.py --exercise ../../../../modules/02_memory/exercises/ex03_heaptrack --use-solution`
 - High-level scoring:
-  - Configure/build: 40 points
+  - Configure/build: 30 points
   - Tests: 40 points
-  - Artifacts present: 20 points
+  - Artifacts present: 30 points
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: verify you removed `#error` and included `<vector>`.
+- If tests fail: ensure your sum calculation matches 1+2+3+4 for input 4.
 
 ## 13) Stretch goals
-- Add a second workload with a different allocation pattern and compare results.
-- Capture a Massif report and save it in `learner/artifacts/` as `massif.out`.
+- Run with a larger `n` and compare Massif profiles between runs.
+- Add a second workload function that intentionally allocates more memory and compare profiles.

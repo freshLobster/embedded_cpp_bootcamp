@@ -1,7 +1,9 @@
-#include <cassert>
-#include <algorithm>
-#include <cmath>
-#include <vector>
+// Exercise: Latency budget statistics
+// Compute p50 and p95 latency percentiles from sample data.
+
+#include <algorithm> // For std::sort.
+#include <cassert>   // For assert() in main.
+#include <vector>    // For sample storage.
 
 struct LatencyStats {
     int p50{0};
@@ -10,6 +12,7 @@ struct LatencyStats {
 
 LatencyStats compute_stats(std::vector<int> samples) {
     // TODO: sort samples and compute p50/p95 deterministically.
+    // Use an index-based percentile (e.g., p50 = element at 50th percentile).
     (void)samples;
     return {};
 }
@@ -24,6 +27,7 @@ int exercise() {
 }
 
 int main() {
+    // The exercise returns 0 only when percentile math is correct.
     assert(exercise() == 0);
     return 0;
 }

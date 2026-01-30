@@ -1,27 +1,27 @@
 # 05_scheduling - ex01_latency_budget
 
 ## 1) Title + Mission
-Mission: Compute latency statistics from monotonic timestamp samples and validate them against a budget.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
+Mission: compute latency percentiles (p50/p95) from samples and validate against a budget using deterministic math. (Source: [cppreference: std::chrono::duration](https://en.cppreference.com/w/cpp/chrono/duration))
 
 ## 2) What you are building (plain English)
-You are building a small stats utility that turns duration samples into p50/p95 metrics for latency review.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
+You are building a small statistics helper that takes latency samples and returns p50 and p95 metrics. These metrics are then used to reason about timing budgets. (Source: [cppreference: std::chrono::duration](https://en.cppreference.com/w/cpp/chrono/duration))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Latency budgets and jitter bounds are contractual requirements in safety-critical software and require monotonic time sources.【https://en.cppreference.com/w/cpp/chrono/steady_clock†L377-L377】
+Latency budgets and jitter bounds are contractual requirements for safety-critical systems. Percentiles (p50, p95) summarize how a system behaves under load and help you detect tail latency issues. (Source: [cppreference: std::chrono::steady_clock](https://en.cppreference.com/w/cpp/chrono/steady_clock))
 
 ## 4) Concepts (short lecture)
-`std::chrono::duration` represents a time interval and is the correct type for expressing latency samples and budgets.【https://en.cppreference.com/w/cpp/chrono/duration†L450-L450】
+Percentiles summarize distributions. The p50 is the median; p95 indicates the tail where worst-case behavior hides. Using a deterministic percentile calculation makes results repeatable, which is important for validation. (Source: [cppreference: std::sort](https://en.cppreference.com/w/cpp/algorithm/sort))
 
-A p50 is the median sample and p95 is a tail metric: 95% of samples are less than or equal to it. Computing these from sorted samples is a simple, deterministic way to reason about jitter.
+If you store samples as integer microseconds or milliseconds, you can compute percentiles by sorting and selecting an index. This is a simple, deterministic method that is easy to explain in reviews. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
 
-Example (not your solution): compute percentile indices from a sorted vector.
+Example (not your solution): compute a percentile index with comments.
 ```cpp
-int percentile(std::vector<int> samples, double p) {
-    std::sort(samples.begin(), samples.end());
-    size_t idx = static_cast<size_t>(std::ceil(p * samples.size())) - 1;
-    if (idx >= samples.size()) idx = samples.size() - 1;
-    return samples[idx];
-}
+// Sort samples so percentile indices are meaningful.
+std::sort(samples.begin(), samples.end());
+// Compute the index for the 95th percentile.
+size_t idx95 = static_cast<size_t>((samples.size() - 1) * 0.95);
+// Read the value at that index.
+int p95 = samples[idx95];
 ```
 
 ## 5) Repo context (this folder only)
@@ -50,6 +50,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -75,17 +80,36 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review `LatencyStats` and `compute_stats`.
-   - Identify how p50 and p95 should be computed.
-   - **Expected result:** you can describe the index calculation for each percentile.
-2) Implement `compute_stats`.
-   - Sort the samples and compute percentile indices deterministically.
-   - Guard against empty input (return zeros or handle as you decide in README).
-   - **Expected result:** p50/p95 match expected values for a known sample set.
-3) Remove `#error TODO_implement_exercise`, build, and run tests.
-4) Save artifacts.
+1) Read `compute_stats` in `learner/src/main.cpp`.
+   The function receives a copy of the samples. You can safely sort this local copy without affecting the caller. The tests expect p50=50 and p95=100 for the provided dataset. (Source: [cppreference: std::sort](https://en.cppreference.com/w/cpp/algorithm/sort))
+   - **Expected result:** you can explain why sorting the local copy is safe.
+
+2) Sort the samples.
+   Use `std::sort(samples.begin(), samples.end())`. Sorting is required before percentile selection so index-based selection is meaningful. (Source: [cppreference: std::sort](https://en.cppreference.com/w/cpp/algorithm/sort))
+   - **Expected result:** samples are in ascending order.
+
+3) Compute percentile indices deterministically.
+   Use `(samples.size() - 1) * 0.50` and `(samples.size() - 1) * 0.95` to compute indices, then read those elements. This method is simple and repeatable. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   - **Expected result:** p50=50 and p95=100 for the provided sample set.
+
+4) Return the `LatencyStats` struct with computed values.
+   Keep the function pure: no global state, no I/O. This makes it deterministic and testable. (Source: [cppreference: aggregate initialization](https://en.cppreference.com/w/cpp/language/aggregate_initialization))
+   - **Expected result:** tests pass with expected values.
+
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+6) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -113,9 +137,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you removed `#error` and included `<algorithm>`.
+- If tests fail: double-check percentile index math and integer rounding.
 
 ## 13) Stretch goals
-- Add p99 and max to the stats output.
-- Record the sample count and add a guard for empty input.
+- Add a p99 percentile and compare it to a tighter budget.
+- Add a CSV export of samples and computed statistics.

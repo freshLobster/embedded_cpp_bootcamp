@@ -1,27 +1,32 @@
 # 01_foundations - ex02_message_bus_view
 
 ## 1) Title + Mission
-Mission: Implement a const-correct, non-owning bus view that exposes subscribers without copying or allowing mutation.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+Mission: implement a const-correct, non-owning "view" of a message bus subscriber list that exposes read-only access without copying. This is a core API design skill for real-time systems where ownership boundaries must be explicit. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
 ## 2) What you are building (plain English)
-You are building a read-only view type that provides non-owning access to subscriber metadata, so callers can inspect without taking ownership or modifying the underlying storage.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+You are building a lightweight wrapper that lets callers inspect subscribers without taking ownership or modifying the underlying list. The view is like a transparent window: it shows what is inside, but it cannot change or own the storage. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-In autonomy pipelines, passing views instead of owning copies preserves performance and keeps ownership boundaries explicit, which reduces accidental allocations and data races.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+Passing ownership through API boundaries is expensive and risky in embedded systems. Views avoid unnecessary allocations and keep ownership explicit, which reduces latency spikes and prevents accidental mutation of shared state. This is especially important in autonomy pipelines where data is shared across threads and components. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
 
 ## 4) Concepts (short lecture)
-`std::string_view` and `std::span` are non-owning views: they refer to a contiguous sequence of characters or objects without managing lifetime. This allows zero-copy inspection when a consumer only needs read access.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+`std::string_view` is a non-owning view of a character sequence. It stores a pointer and a length, which means it does not allocate or copy. The caller must ensure the underlying string outlives the view. This is perfect for read-only inspection without copying. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
-Const-correctness matters for APIs that expose internal state. A read-only view should not allow modification of the underlying container, which means the view should return `std::string_view` or `const` references and never non-const accessors.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+`std::span` is the generalization of this idea for arbitrary contiguous sequences (e.g., arrays and `std::vector`). A `span` does not own its elements, so it is a fast, safe way to "borrow" a range of objects for read-only access. The same lifetime rule applies: the owner must outlive the view. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
 
-A view must never outlive the storage it refers to. The safest mental model is that the view is a temporary lens that is valid only as long as the owning `MessageBus` object is alive and has not reallocated its storage.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+Const-correctness is an API contract: if a function promises read-only access, it must return const references or views so callers cannot mutate state through the API. This prevents accidental modification of shared data structures. (Source: [cppreference: const and constness](https://en.cppreference.com/w/cpp/language/cv))
 
-Example (not your solution): a view over a vector of strings using `std::string_view`.
+Example (not your solution): read-only view over `std::vector<std::string>` with comments showing the non-owning contract.
 ```cpp
 class BusView {
 public:
+    // The view stores only a pointer; it does not own the vector.
     explicit BusView(const std::vector<std::string>* subs) : subs_(subs) {}
+
+    // Size returns 0 if the pointer is null; no mutation is possible here.
     size_t size() const { return subs_ ? subs_->size() : 0; }
+
+    // Return a non-owning view into the string storage.
     std::string_view at(size_t i) const { return (*subs_)[i]; }
 private:
     const std::vector<std::string>* subs_{nullptr};
@@ -31,9 +36,10 @@ private:
 Example usage (not your solution):
 ```cpp
 MessageBus bus;
+// Subscribe registers ownership inside the bus.
 bus.subscribe("imu");
 BusView v = bus.view();
-// v.at(0) returns a string_view without copying.
+// v.at(0) is a string_view; it does not copy or allocate.
 ```
 
 ## 5) Repo context (this folder only)
@@ -100,22 +106,28 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and review the `MessageBus` and `BusView` skeletons.
-   - Identify which methods must be const and which should avoid copying.
-   - **Expected result:** you can explain why `BusView` must not own data.
-2) Implement `MessageBus::subscribe`.
-   - Store the subscriber name in the internal container (move from the parameter).
-   - **Expected result:** the bus stores names without additional copies.
+1) Read `learner/src/main.cpp` and identify the ownership boundary.
+   `MessageBus` owns the subscriber list. `BusView` is just a borrowed window into that list. Any method on `BusView` must be read-only and must not allocate or copy. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   - **Expected result:** you can explain why returning `std::string` would violate the "no copies" goal.
+
+2) Implement `MessageBus::subscribe` to store names.
+   Use `std::move` on the incoming `std::string` to avoid an extra allocation and to make ownership transfer explicit. This mirrors production code where large strings or buffers should not be copied unnecessarily. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** subscribers are stored and owned by the bus.
+
 3) Implement `MessageBus::view` and `BusView::size`.
-   - `view()` should return a `BusView` that refers to the internal container.
-   - `size()` should handle the null-pointer case safely.
-   - **Expected result:** `view.size()` matches the subscriber count.
-4) Implement `BusView::at` to return a `std::string_view`.
-   - Do not return `std::string` or a mutable reference.
-   - **Expected result:** callers can read values without modifying them.
+   `view()` should return a `BusView` that points at `subscribers_`. `size()` should safely handle a null pointer by returning zero, because a view can be default-constructed in some APIs. This prevents crashes when a caller holds an empty view. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
+   - **Expected result:** `view.size()` matches `subscribers_.size()` and is safe if the view is empty.
+
+4) Implement `BusView::at` using `std::string_view`.
+   Return `std::string_view` so callers can inspect without copying or mutating. Do not return `std::string` or non-const references. The test compares string content, so `std::string_view` is sufficient. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   - **Expected result:** `view.at(i)` returns a view of the stored string.
+
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    - **Expected result:** `ctest` reports `100% tests passed`.
-6) Save artifacts in `learner/artifacts/`.
+
+6) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log` so the grader can verify completion.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -143,9 +155,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: verify CMake + compiler version and remove the `#error`.
+- If tests fail: confirm `BusView` returns views, not copies, and that `size()` handles null safely.
 
 ## 13) Stretch goals
-- Add bounds checking and return an empty view for invalid indices.
-- Implement a `BusView::begin()/end()` pair to allow ranged-for iteration.
+- Add `begin()`/`end()` to iterate over subscribers without exposing mutation.
+- Add a safe bounds check and return an empty `std::string_view` for out-of-range indices.

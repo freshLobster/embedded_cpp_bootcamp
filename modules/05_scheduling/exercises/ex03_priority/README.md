@@ -1,27 +1,27 @@
 # 05_scheduling - ex03_priority
 
 ## 1) Title + Mission
-Mission: Implement a priority-based dispatcher using a priority_queue to select the next task.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
+Mission: implement a priority-based dispatcher using `std::priority_queue` so high-priority tasks run first. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
 
 ## 2) What you are building (plain English)
-You are building a dispatcher that orders tasks by priority, ensuring higher-priority work is executed first.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
+You are building a dispatcher that orders tasks by priority, ensuring the most important work is processed before lower-priority tasks. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Priority scheduling is a standard control-system tactic for meeting deadlines when multiple tasks compete for CPU time.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
+Priority scheduling is central to control systems: safety-critical tasks must run ahead of best-effort tasks. A correct priority queue prevents low-priority work from starving critical control loops. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
 
 ## 4) Concepts (short lecture)
-`std::priority_queue` is a container adaptor that provides access to the highest-priority element according to a comparator. It is the simplest way to model priority-based dispatching in standard C++.【https://en.cppreference.com/w/cpp/container/priority_queue†L395-L395】
+`std::priority_queue` is a container adaptor that always exposes the "largest" element according to a comparator. By defining a comparator that orders by priority, you can model a dispatcher that always executes the highest-priority task. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
 
-The comparator defines what "higher priority" means. A common pattern is to store an integer priority and order by larger values first.
+Custom comparators define the ordering rule. In a priority queue, the comparator returns true if the first argument should come *after* the second, which can be confusing. This exercise forces you to reason about comparator direction. (Source: [cppreference: Compare](https://en.cppreference.com/w/cpp/named_req/Compare))
 
-Example (not your solution): a priority queue with a custom comparator.
+Example (not your solution): comparator for higher priority first.
 ```cpp
-struct Item { int prio; int value; };
-struct ByPriority { bool operator()(const Item& a, const Item& b) const { return a.prio < b.prio; } };
-std::priority_queue<Item, std::vector<Item>, ByPriority> pq;
-pq.push({2, 10});
-pq.push({1, 5});
-// pq.top().prio == 2
+struct ByPriority {
+    bool operator()(const Item& a, const Item& b) const {
+        // Return true if a has lower priority than b.
+        return a.prio < b.prio;
+    }
+};
 ```
 
 ## 5) Repo context (this folder only)
@@ -50,6 +50,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -75,17 +80,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and inspect the dispatcher skeleton.
-   - Identify the item type and comparator requirements.
-   - **Expected result:** you can describe which task should be chosen first.
-2) Implement the comparator and push/pop logic.
-   - Ensure `top()` returns the highest-priority element.
-   - **Expected result:** tasks are ordered by priority.
-3) Implement `dispatch_next()` (or equivalent) to pop and return the chosen task.
-4) Remove `#error TODO_implement_exercise`, build, and run tests.
-5) Save artifacts.
+1) Read `ByPriority` and `Dispatcher` in `learner/src/main.cpp`.
+   You must define a comparator that makes the highest `prio` come out first. Remember: the priority_queue places the "largest" element by comparator at the top. (Source: [cppreference: std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue))
+   - **Expected result:** you can explain which direction the comparator should return.
+
+2) Implement `ByPriority::operator()`.
+   Return true when `a` has lower priority than `b`. This makes the queue treat higher priorities as "larger" and pop them first. (Source: [cppreference: Compare](https://en.cppreference.com/w/cpp/named_req/Compare))
+   - **Expected result:** items with priority 3 are dispatched before priority 2.
+
+3) Implement `Dispatcher::dispatch_next`.
+   Use `pq_.top()` to read the highest-priority item, then `pop()` to remove it. Return the item by value. (Source: [cppreference: std::priority_queue::top](https://en.cppreference.com/w/cpp/container/priority_queue/top))
+   - **Expected result:** the first dispatch returns the priority-3 item.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -113,9 +133,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you removed `#error` and included `<queue>`.
+- If tests fail: double-check comparator direction and `dispatch_next` logic.
 
 ## 13) Stretch goals
-- Add stable ordering for equal priorities (e.g., FIFO by insertion order).
-- Add a test with mixed priorities and equal-priority tasks.
+- Add FIFO behavior for equal priorities by adding a sequence counter.
+- Add a method to inspect queue size and highest priority without popping.

@@ -52,7 +52,7 @@ Use these files in `modules/05_scheduling/checklists/`:
   - `ctest --preset dev -R Module05_scheduling` (if the module test filter exists)
 - `review.md`: perform a quick self-review against `STYLE.md` and confirm no warnings or unsafe patterns remain.
 
-Save any required artifacts in `modules/05_scheduling/artifacts/` and in each exercise’s `learner/artifacts/` folder.
+Save any required artifacts in `modules/05_scheduling/artifacts/` and in each exercise's `learner/artifacts/` folder.
 
 ## Grade this module
 - Module-level grader: `python3 tools/grader/grade.py --module modules/05_scheduling`

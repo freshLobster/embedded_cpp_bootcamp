@@ -1,27 +1,30 @@
 # 02_memory - ex02_uaf_fix
 
 ## 1) Title + Mission
-Mission: Fix a use-after-free pattern by enforcing correct ownership and lifetime in the API you implement.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
+Mission: eliminate a use-after-free risk by enforcing correct ownership and object lifetime using `std::unique_ptr`. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
 
 ## 2) What you are building (plain English)
-You are building a safe factory and access path for a payload so that consumers never access objects after their lifetime ends.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
+You are building a safe factory function that returns a payload with a clear owner. The caller owns the payload and can safely use it without touching freed memory. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Use-after-free is undefined behavior with catastrophic consequences; eliminating it requires explicit ownership and a correct mental model of object lifetime.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
+Use-after-free bugs are catastrophic in embedded systems because they can corrupt memory, cause intermittent faults, and escape unit tests. A correct ownership model makes these bugs impossible rather than unlikely. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
 
 ## 4) Concepts (short lecture)
-C++ object lifetimes begin and end at precise points. Accessing an object after its lifetime ends is undefined behavior and can manifest as rare, difficult-to-debug crashes in the field.【https://en.cppreference.com/w/cpp/language/lifetime†L494-L494】
+Object lifetime is well-defined: it begins when storage is initialized and ends when the object is destroyed or its storage is reused. Accessing an object after its lifetime ends is undefined behavior, which can manifest as random crashes. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
 
-`std::unique_ptr` represents exclusive ownership of an object and releases it automatically when it goes out of scope. Returning a `unique_ptr` from a factory is the simplest way to guarantee the caller owns the data and prevents use-after-free of stack-allocated temporaries.【https://en.cppreference.com/w/cpp/memory/unique_ptr†L510-L510】
+`std::unique_ptr` represents exclusive ownership of a heap-allocated object. When the unique pointer goes out of scope, it automatically deletes the object. This makes ownership explicit and prevents dangling pointers. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
 
-AddressSanitizer is a fast memory error detector that can catch use-after-free bugs during testing, making lifetime errors visible before deployment.【https://clang.llvm.org/docs/AddressSanitizer.html†L85-L85】
+AddressSanitizer (ASan) is a runtime tool that detects use-after-free and other memory errors. It is a fast, practical way to confirm that your fixes work. (Source: [LLVM AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html))
 
-Example (not your solution): a safe factory that returns ownership.
+Example (not your solution): returning a `unique_ptr` avoids returning a pointer to a local variable.
 ```cpp
 std::unique_ptr<Payload> make_payload(int n) {
     auto p = std::make_unique<Payload>();
-    for (int i = 0; i < n; ++i) p->data.push_back(i);
-    return p; // caller owns the payload
+    // Fill with a known pattern so callers can validate results.
+    for (int i = 1; i <= n; ++i) {
+        p->data.push_back(i);
+    }
+    return p; // ownership transfers to caller
 }
 ```
 
@@ -40,11 +43,6 @@ sudo apt-get update
 sudo apt-get install -y build-essential cmake ninja-build git python3 python3-venv clang clang-format clang-tidy gdb
 ```
 
-Optional heap profiling:
-```
-sudo apt-get install -y valgrind
-```
-
 Run these in **this exercise folder**:
 ```
 cmake --version
@@ -56,6 +54,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -81,19 +84,32 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the `Payload` and factory TODOs.
-   - Identify where the original use-after-free would occur and what ownership should look like.
-   - **Expected result:** you can state who owns the payload after creation.
-2) Implement the `Payload` data structure and `sum()` helper.
-   - Keep it simple and deterministic so tests are stable.
-   - **Expected result:** `sum()` produces the expected total.
-3) Implement a safe factory that returns ownership.
-   - Use `std::unique_ptr` and never return references to local objects.
-   - **Expected result:** the caller can safely access the payload after the factory returns.
-4) Update `exercise()` to build and validate a payload and remove `#error`.
-5) Build, run tests, and save artifacts.
+1) Read `learner/src/main.cpp` and identify the lifetime hazard.
+   The exercise expects a factory that returns a payload. Returning a pointer to a local stack variable would be a use-after-free bug. You must ensure the payload outlives the function call. (Source: [cppreference: object lifetime](https://en.cppreference.com/w/cpp/language/lifetime))
+   - **Expected result:** you can explain why returning `Payload*` to a local object is invalid.
+
+2) Implement `Payload::sum()` as a pure read.
+   Iterate over `data` and accumulate values without modifying the vector. This is the correctness check used by the test. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   - **Expected result:** `sum()` returns the expected total for the given data.
+
+3) Implement `make_payload()` to allocate on the heap.
+   Use `std::make_unique<Payload>()` to allocate, then fill `data` with values 1..n. Return the `unique_ptr` so ownership transfers to the caller. This prevents use-after-free because the caller controls lifetime. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** the returned pointer is valid after the function returns.
+
+4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+5) Capture artifacts.
+   Save the build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -121,9 +137,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you included `<memory>` and removed `#error`.
+- If tests fail: confirm that `make_payload()` returns a heap-allocated object and that `sum()` is correct.
 
 ## 13) Stretch goals
-- Add a test that verifies empty payload behavior.
-- Add a `make_payload(size_t count, int start)` overload and validate it.
+- Add a `validate()` method that checks the vector is non-empty and returns a boolean.
+- Add an AddressSanitizer run and save the log to `learner/artifacts/asan.log`.

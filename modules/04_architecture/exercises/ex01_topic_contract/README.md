@@ -1,30 +1,28 @@
 # 04_architecture - ex01_topic_contract
 
 ## 1) Title + Mission
-Mission: Implement a topic contract view using non-owning string types to avoid copies in the hot path.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+Mission: parse a topic contract string using non-owning views to avoid unnecessary copies in the hot path. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
 ## 2) What you are building (plain English)
-You are building a small contract parser that accepts non-owning views of text and converts them into a structured `TopicContract`.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+You are building a small parser that takes a string like `name:type:rate` and converts it into a structured `TopicContract`. The parser must be strict, rejecting malformed inputs. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Autonomy middleware moves high-rate data; parsing without copies reduces latency and keeps ownership boundaries explicit.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+Robotics middleware often parses high-rate message descriptors. Using non-owning views avoids unnecessary allocations and keeps latency predictable. Strict parsing prevents bad configuration from propagating into runtime faults. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
 ## 4) Concepts (short lecture)
-`std::string_view` describes a constant contiguous sequence of characters without owning them. This lets you parse configuration strings without allocating or copying data.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+`std::string_view` is a lightweight, non-owning reference to a string. It lets you parse text without allocating or copying. The caller must ensure the original string outlives the view. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
 
-A topic contract is a small schema: name, type, and rate. Parsing it deterministically helps enforce interface contracts between pipeline stages.
+Parsing with `string_view` typically means splitting by delimiters and then validating each segment. You can convert to owning `std::string` only after validation to minimize overhead. (Source: [cppreference: std::string_view::substr](https://en.cppreference.com/w/cpp/string/basic_string_view/substr))
 
-Example (not your solution): parsing a `name:type:rate` string.
+Example (not your solution): splitting on delimiters with explicit comments.
 ```cpp
-bool parse_contract(std::string_view text, TopicContract& out) {
-    auto first = text.find(':');
-    auto second = text.find(':', first + 1);
-    if (first == std::string_view::npos || second == std::string_view::npos) return false;
-    out.name = std::string(text.substr(0, first));
-    out.type = std::string(text.substr(first + 1, second - first - 1));
-    out.rate_hz = std::stoi(std::string(text.substr(second + 1)));
-    return !out.name.empty() && !out.type.empty() && out.rate_hz > 0;
-}
+std::string_view text = "sensor.raw:float:50";
+size_t first = text.find(':');
+size_t second = text.find(':', first + 1);
+// name = "sensor.raw", type = "float", rate = "50"
+std::string_view name = text.substr(0, first);
+std::string_view type = text.substr(first + 1, second - first - 1);
+std::string_view rate = text.substr(second + 1);
 ```
 
 ## 5) Repo context (this folder only)
@@ -53,6 +51,11 @@ c++ --version
 ```
 Expected output (example): `g++ (Ubuntu 11.4.0)` or `clang version 14.x`.
 
+If you will use Ninja:
+```
+ninja --version
+```
+Expected output: a version number (e.g., `1.10.1`). If Ninja is missing, use the Visual Studio generator on Windows.
 
 ## 7) Build instructions (learner + solution)
 ### Learner path (fails initially until you implement)
@@ -78,19 +81,36 @@ ctest --test-dir build_solution --output-on-failure
 ```
 Expected output: `100% tests passed`.
 
+Windows (no Ninja):
+```
+cmake -S solution -B build_solution -G "Visual Studio 17 2022"
+cmake --build build_solution --config Debug
+ctest --test-dir build_solution -C Debug --output-on-failure
+```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the `TopicContract` and `parse_contract` stub.
-   - Confirm the expected input format: `name:type:rate`.
-   - **Expected result:** you can list the required fields and constraints.
-2) Implement delimiter parsing using `find`.
-   - Identify the two `:` separators and guard against missing delimiters.
-   - **Expected result:** invalid strings return `false`.
-3) Extract fields using `substr` and populate the output structure.
-   - Convert the rate to an integer and validate it is positive.
-   - **Expected result:** valid inputs produce the expected fields.
-4) Remove `#error TODO_implement_exercise`, build, and run tests.
-5) Save artifacts.
+1) Read `parse_contract` in `learner/src/main.cpp` and list the required fields.
+   The contract format is `name:type:rate`. You must parse exactly three fields, reject missing delimiters, and reject empty fields. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   - **Expected result:** you can explain why `"invalid"` should return false.
+
+2) Split the input by `:` using `string_view::find`.
+   Find the first and second delimiter, then create three views with `substr`. This avoids allocations while you validate the text. (Source: [cppreference: std::string_view::substr](https://en.cppreference.com/w/cpp/string/basic_string_view/substr))
+   - **Expected result:** you can identify name, type, and rate views.
+
+3) Validate name/type and parse the rate.
+   Ensure name/type are non-empty. Parse the rate by iterating digits; reject non-digits and require a positive value. This strict parsing prevents silent configuration errors. (Source: [cppreference: character classification](https://en.cppreference.com/w/cpp/string/byte/isdigit))
+   - **Expected result:** invalid inputs return false.
+
+4) Assign validated views into the output struct.
+   Convert `string_view` to `std::string` only after validation, then set `rate_hz`. This keeps copies minimal and explicit. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   - **Expected result:** output struct fields match the input.
+
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+6) Capture artifacts.
+   Save build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -118,9 +138,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: ensure you removed `#error` and included `<string_view>`.
+- If tests fail: check delimiter parsing and ensure rate is parsed as a positive integer.
 
 ## 13) Stretch goals
-- Support whitespace trimming around fields.
-- Add a `TopicContract::to_string()` helper for debugging.
+- Allow optional whitespace around delimiters and trim it before validation.
+- Add a `to_string()` helper that serializes a `TopicContract` back to text.

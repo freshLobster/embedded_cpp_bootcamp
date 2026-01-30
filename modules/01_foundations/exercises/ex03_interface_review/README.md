@@ -1,30 +1,36 @@
 # 01_foundations - ex03_interface_review
 
 ## 1) Title + Mission
-Mission: Refactor an owning buffer interface to follow the rule of three/five/zero and expose a stable, safe API surface.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+Mission: refactor a small owning type to follow the Rule of Five and correct move semantics, then prove the moved-from state is safe and predictable. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
 
 ## 2) What you are building (plain English)
-You are building a small owning buffer type whose copy/move behavior is explicit and safe, with clear semantics for resource ownership and transfer.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+You are building a tiny owning buffer type that cannot be copied but can be moved safely. The goal is to make its interface and behavior consistent with the ownership model: one owner at a time, with a valid "empty" state after moves. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
 
 ## 3) Why it matters (embedded/robotics/defense relevance)
-Large robotics codebases live or die by interface hygiene; ambiguous ownership and missing move semantics lead to leaks and latent correctness bugs.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+In embedded systems, accidental copies or unclear ownership can lead to double free, stale pointers, or data races. A clean interface with explicit move-only semantics makes ownership transfer explicit and safe, which is essential in safety-critical code. (Source: [C++ Core Guidelines, resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
 
 ## 4) Concepts (short lecture)
-The rule of three/five/zero explains when classes that manage resources must explicitly define copy, move, and destruction behavior to avoid double-free or leaks. If you own a resource, you must decide how copying and moving behave.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+The Rule of Five says that if your type owns a resource (like heap memory), you should explicitly define or delete copy/move constructors and assignment operators, plus the destructor. This prevents implicit behavior that could double-free or leak resources. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
 
-`std::unique_ptr` expresses exclusive ownership of dynamically allocated objects and automatically releases them in its destructor. Using `unique_ptr` inside your class is a classic rule-of-zero strategy because the compiler-generated destructor and move operations are correct by default.【https://en.cppreference.com/w/cpp/memory/unique_ptr†L510-L510】
+`std::unique_ptr<T[]>` is a single-owner smart pointer that deletes its array when it goes out of scope. It is move-only, which makes it a great building block for move-only owning types. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
 
-Move semantics transfer ownership without copying. `std::move` does not move by itself; it marks an object as eligible to be moved-from so that ownership can be transferred efficiently.【https://en.cppreference.com/w/cpp/utility/move†L435-L435】
+Move semantics must leave the source object in a valid, empty state. "Valid" means you can safely destroy it or assign to it again without crashes. A common pattern is to reset the source size to zero after moving. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
 
-Example (not your solution): an owning buffer using `unique_ptr` with explicit move, and copy deleted.
+Example (not your solution): move-only buffer with explicit comments about the moved-from state.
 ```cpp
 class Buffer {
 public:
     explicit Buffer(size_t n) : size_(n), data_(n ? std::make_unique<int[]>(n) : nullptr) {}
+
+    // Disallow copy to enforce single ownership.
     Buffer(const Buffer&) = delete;
     Buffer& operator=(const Buffer&) = delete;
-    Buffer(Buffer&& other) noexcept : size_(other.size_), data_(std::move(other.data_)) { other.size_ = 0; }
-    // TODO: add move assignment and accessor methods.
+
+    // Move transfers ownership and clears the source size.
+    Buffer(Buffer&& other) noexcept
+        : size_(other.size_), data_(std::move(other.data_)) {
+        other.size_ = 0; // moved-from state is empty but valid
+    }
 private:
     size_t size_{0};
     std::unique_ptr<int[]> data_;
@@ -95,21 +101,28 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the `Buffer` skeleton and TODO markers.
-   - Identify which special member functions are deleted and which must be implemented.
-   - **Expected result:** you can explain why copying is unsafe for this class.
-2) Implement the constructor and basic accessors.
-   - Allocate the buffer if `size > 0`.
-   - Provide `size()` and `operator[]` for const and non-const access.
-   - **Expected result:** callers can read and write elements safely.
-3) Implement move constructor and move assignment.
-   - Transfer ownership of the buffer and reset the moved-from object to a safe empty state.
-   - **Expected result:** moved-from buffers are valid but empty.
-4) Implement `sum()`.
-   - Iterate over the buffer and return the sum of values.
-   - **Expected result:** test code that moves and sums passes.
+1) Inspect the `Buffer` interface in `learner/src/main.cpp`.
+   Notice that copy is deleted and move is declared. Your task is to make the move operations and `sum()` consistent with a move-only owner. This means ownership is transferred, and the moved-from object becomes a valid empty buffer. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   - **Expected result:** you can describe the intended "empty after move" state.
+
+2) Implement the move constructor.
+   Move the `std::unique_ptr` and copy the `size_`, then set `other.size_ = 0`. This ensures that the moved-from object will not pretend to own elements it no longer owns. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** moving a buffer transfers ownership and leaves the source empty.
+
+3) Implement move assignment with a safe order of operations.
+   First move the pointer, then copy the size. Finally, set `other.size_ = 0`. This mirrors typical move assignment: after the transfer, the source is empty and the destination owns the data. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   - **Expected result:** move assignment does not leak or double free.
+
+4) Implement `sum()` by iterating only up to `size_`.
+   The sum must respect the current size, which will be zero in a moved-from object. This ensures that operations on moved-from objects are safe and predictable. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   - **Expected result:** `sum()` returns 0 for an empty/moved-from buffer.
+
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
-6) Save artifacts in `learner/artifacts/`.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+
+6) Capture artifacts.
+   Save the build and test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log` for grading.
+   - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -137,9 +150,9 @@ Example snippet for `ctest.log`:
 
 ## 12) If it fails (quick triage)
 See `troubleshooting.md`. Quick triage:
-- If build fails: verify CMake + compiler version.
-- If tests fail: re-check your logic against the required behavior.
+- If build fails: verify you removed the `#error` and defined all methods.
+- If tests fail: check that `other.size_` is reset to 0 in both move operations.
 
 ## 13) Stretch goals
-- Add a bounds-checked `at()` method that returns an error code or throws.
-- Add a `swap()` method and use it in move assignment.
+- Add a `data()` accessor that returns a `const int*` for read-only access.
+- Add a small unit test that verifies `sum()` on an empty buffer returns 0.

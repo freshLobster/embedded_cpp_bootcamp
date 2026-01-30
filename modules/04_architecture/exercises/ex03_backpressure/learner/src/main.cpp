@@ -1,13 +1,22 @@
-#include <cassert>
-#include <deque>
+// Exercise: Backpressure queue
+// Implement a bounded queue that drops items when full and tracks drop count.
+
+#include <cassert> // For assert() in main.
+#include <deque>   // For std::deque storage.
 
 class BoundedQueue {
 public:
     explicit BoundedQueue(size_t cap) : cap_(cap) {}
+
+    // Try to push; return false if full and increment drop counter.
     bool try_push(int v);
+
+    // Try to pop; return false if empty.
     bool try_pop(int& out);
+
     size_t drops() const;
     size_t size() const;
+
 private:
     size_t cap_;
     size_t drops_{0};
@@ -15,13 +24,15 @@ private:
 };
 
 bool BoundedQueue::try_push(int v) {
-    // TODO: drop when full and increment drops_.
+    // TODO: if queue is full, increment drops_ and return false.
+    // Otherwise push value and return true.
     (void)v;
     return false;
 }
 
 bool BoundedQueue::try_pop(int& out) {
-    // TODO: pop if available.
+    // TODO: if queue is empty, return false.
+    // Otherwise set out to front element, pop it, and return true.
     (void)out;
     return false;
 }
@@ -43,6 +54,7 @@ int exercise() {
 }
 
 int main() {
+    // The exercise returns 0 only if backpressure behavior is correct.
     assert(exercise() == 0);
     return 0;
 }
