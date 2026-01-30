@@ -44,6 +44,16 @@ AddressSanitizer is a practical tool for catching these errors—it instruments 
 - The per-exercise grader reports a numeric score.
 - Module-level artifacts (if any) are stored in `modules/02_memory/artifacts/`.
 
+## Checklists and evidence
+Use these files in `modules/02_memory/checklists/`:
+- `mastery.md`: confirm you can explain the module goal, list failure modes you found, and map skills to autonomy/defense use cases.
+- `validation.md`: run the validation commands and record results. At minimum:
+  - `cmake --preset dev`
+  - `ctest --preset dev -R Module02_memory` (if the module test filter exists)
+- `review.md`: perform a quick self-review against `STYLE.md` and confirm no warnings or unsafe patterns remain.
+
+Save any required artifacts in `modules/02_memory/artifacts/` and in each exercise’s `learner/artifacts/` folder.
+
 ## Grade this module
 - Module-level grader: `python3 tools/grader/grade.py --module modules/02_memory`
 - JSON: `python3 tools/grader/grade.py --module 02 --json`

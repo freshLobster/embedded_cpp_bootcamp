@@ -44,6 +44,16 @@ Real-time policies like SCHED_FIFO let a runnable thread continue until it block
 - The per-exercise grader reports a numeric score.
 - Module-level artifacts (if any) are stored in `modules/05_scheduling/artifacts/`.
 
+## Checklists and evidence
+Use these files in `modules/05_scheduling/checklists/`:
+- `mastery.md`: confirm you can explain the module goal, list failure modes you found, and map skills to autonomy/defense use cases.
+- `validation.md`: run the validation commands and record results. At minimum:
+  - `cmake --preset dev`
+  - `ctest --preset dev -R Module05_scheduling` (if the module test filter exists)
+- `review.md`: perform a quick self-review against `STYLE.md` and confirm no warnings or unsafe patterns remain.
+
+Save any required artifacts in `modules/05_scheduling/artifacts/` and in each exercise’s `learner/artifacts/` folder.
+
 ## Grade this module
 - Module-level grader: `python3 tools/grader/grade.py --module modules/05_scheduling`
 - JSON: `python3 tools/grader/grade.py --module 05 --json`

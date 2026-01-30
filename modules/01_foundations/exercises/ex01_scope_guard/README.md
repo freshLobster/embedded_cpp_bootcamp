@@ -2,14 +2,43 @@
 
 ## 1) Title + Mission
 Mission: Implement a RAII scope guard that invokes cleanup exactly once on scope exit and supports move-only transfer and explicit dismissal.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
+
 ## 2) What you are building (plain English)
 You are building a minimal scope guard type that owns a cleanup action and runs it deterministically when the guard leaves scope, mirroring how critical resources are safely released in C++.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
+
 ## 3) Why it matters (embedded/robotics/defense relevance)
 Mission-critical software cannot rely on humans to remember cleanup paths; deterministic scope-based cleanup avoids leaks and double-releases even when control flow changes unexpectedly.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
+
 ## 4) Concepts (short lecture)
 RAII ties resource lifetime to object lifetime so cleanup is automatic and deterministic, which is foundational for safe embedded systems where failure paths are common.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
 
-The rule of three/five/zero explains when you must define copy/move/destruction behaviors for resource owners, which directly applies to a move-only scope guard.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+A scope guard is a move-only owner of a cleanup callback. Move-only semantics matter because the cleanup must run exactly once; copying would duplicate ownership. The rule of three/five/zero explains when you must define copy and move operations explicitly for resource owners.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+
+The guard stores a callable (typically a lambda) and invokes it in the destructor if it is still active. `std::function` is a type-erased callable holder; it can be empty or contain a target callable, which makes it a convenient wrapper for a cleanup callback.【https://en.cppreference.com/w/cpp/utility/functional/function†L569-L569】
+
+Example (not your solution): a minimal guard skeleton that still needs correct move semantics.
+```cpp
+class Guard {
+public:
+    explicit Guard(std::function<void()> fn) : fn_(std::move(fn)) {}
+    Guard(const Guard&) = delete;
+    Guard& operator=(const Guard&) = delete;
+    ~Guard() { if (active_ && fn_) fn_(); }
+    void dismiss() { active_ = false; }
+    // TODO: add move constructor/assignment that transfer ownership.
+private:
+    std::function<void()> fn_;
+    bool active_{true};
+};
+```
+
+Example usage (not your solution):
+```cpp
+bool cleaned = false;
+{ Guard g([&] { cleaned = true; }); }
+// cleaned must be true after scope exit.
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -74,18 +103,27 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-   - Identify the required behavior for a RAII scope guard that runs a cleanup callback exactly once on scope exit, with a dismiss option and move-only semantics.
-   - **Expected result:** you can explain what `exercise()` must verify before it returns success.
-2) Implement the required logic in `exercise()`.
-   - Introduce any helper classes or functions directly in `learner/src/main.cpp` or in `learner/include/` if you prefer.
-   - **Expected result:** the code compiles without `#error` and the logic enforces the required behavior.
-3) Rebuild and run tests.
-   - Run `cmake --build build_learner` and `ctest --test-dir build_learner --output-on-failure`.
-   - **Expected result:** tests pass and return 0.
-4) Save artifacts.
-   - Copy build and test output to `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
-   - **Expected result:** those files exist and contain your command output.
+1) Open `learner/src/main.cpp` and read the ScopeGuard skeleton and TODO comments.
+   - Identify which operations are deleted, which must be implemented, and how the tests in `exercise()` check behavior.
+   - **Expected result:** you can describe when the callback must run and when it must not.
+2) Implement the constructor and `dismiss()`.
+   - The constructor should store the callable and mark the guard active.
+   - `dismiss()` should permanently disable cleanup without destroying the callable.
+   - **Expected result:** you can create a guard and stop it from firing on scope exit.
+3) Implement the destructor.
+   - If the guard is active and the callable is non-empty, invoke it exactly once.
+   - Avoid throwing from the destructor (keep it noexcept by behavior).
+   - **Expected result:** callbacks run when the guard leaves scope unless dismissed.
+4) Implement move constructor and move assignment.
+   - Transfer the callable and the `active_` state.
+   - Ensure the source guard is dismissed after the move to prevent double execution.
+   - If move-assigning onto an active guard, run its current cleanup before overwriting (the tests depend on exact-once semantics).
+   - **Expected result:** moving a guard transfers ownership and cleanup still runs exactly once.
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+6) Save artifacts.
+   - Copy build/test output into `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
+   - **Expected result:** both files exist and contain the command output.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -117,5 +155,5 @@ See `troubleshooting.md`. Quick triage:
 - If tests fail: re-check your logic against the required behavior.
 
 ## 13) Stretch goals
-- Add an extra test case that exercises an edge condition.
-- Refactor helper logic into `learner/include/` and keep the interface clean.
+- Add a guard that can be constructed from any callable without heap allocation.
+- Add a small test to verify that move-assigning a dismissed guard does not invoke the callback.

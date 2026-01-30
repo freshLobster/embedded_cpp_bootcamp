@@ -2,14 +2,35 @@
 
 ## 1) Title + Mission
 Mission: Refactor an owning buffer interface to follow the rule of three/five/zero and expose a stable, safe API surface.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+
 ## 2) What you are building (plain English)
 You are building a small owning buffer type whose copy/move behavior is explicit and safe, with clear semantics for resource ownership and transfer.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+
 ## 3) Why it matters (embedded/robotics/defense relevance)
 Large robotics codebases live or die by interface hygiene; ambiguous ownership and missing move semantics lead to leaks and latent correctness bugs.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
-## 4) Concepts (short lecture)
-The rule of three/five/zero describes when a type that manages resources must explicitly define copy, move, and destruction behavior to prevent double-free or leaks.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
 
-RAII ownership paired with clear move semantics creates stable interfaces that are easy to reason about under refactoring and high load.【https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines†L10094-L10094】
+## 4) Concepts (short lecture)
+The rule of three/five/zero explains when classes that manage resources must explicitly define copy, move, and destruction behavior to avoid double-free or leaks. If you own a resource, you must decide how copying and moving behave.【https://en.cppreference.com/w/cpp/language/rule_of_three†L501-L501】
+
+`std::unique_ptr` expresses exclusive ownership of dynamically allocated objects and automatically releases them in its destructor. Using `unique_ptr` inside your class is a classic rule-of-zero strategy because the compiler-generated destructor and move operations are correct by default.【https://en.cppreference.com/w/cpp/memory/unique_ptr†L510-L510】
+
+Move semantics transfer ownership without copying. `std::move` does not move by itself; it marks an object as eligible to be moved-from so that ownership can be transferred efficiently.【https://en.cppreference.com/w/cpp/utility/move†L435-L435】
+
+Example (not your solution): an owning buffer using `unique_ptr` with explicit move, and copy deleted.
+```cpp
+class Buffer {
+public:
+    explicit Buffer(size_t n) : size_(n), data_(n ? std::make_unique<int[]>(n) : nullptr) {}
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+    Buffer(Buffer&& other) noexcept : size_(other.size_), data_(std::move(other.data_)) { other.size_ = 0; }
+    // TODO: add move assignment and accessor methods.
+private:
+    size_t size_{0};
+    std::unique_ptr<int[]> data_;
+};
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -74,18 +95,21 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-   - Identify the required behavior for a move-only buffer type that follows Rule of 5/0 and avoids accidental copying.
-   - **Expected result:** you can explain what `exercise()` must verify before it returns success.
-2) Implement the required logic in `exercise()`.
-   - Introduce any helper classes or functions directly in `learner/src/main.cpp` or in `learner/include/` if you prefer.
-   - **Expected result:** the code compiles without `#error` and the logic enforces the required behavior.
-3) Rebuild and run tests.
-   - Run `cmake --build build_learner` and `ctest --test-dir build_learner --output-on-failure`.
-   - **Expected result:** tests pass and return 0.
-4) Save artifacts.
-   - Copy build and test output to `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
-   - **Expected result:** those files exist and contain your command output.
+1) Open `learner/src/main.cpp` and read the `Buffer` skeleton and TODO markers.
+   - Identify which special member functions are deleted and which must be implemented.
+   - **Expected result:** you can explain why copying is unsafe for this class.
+2) Implement the constructor and basic accessors.
+   - Allocate the buffer if `size > 0`.
+   - Provide `size()` and `operator[]` for const and non-const access.
+   - **Expected result:** callers can read and write elements safely.
+3) Implement move constructor and move assignment.
+   - Transfer ownership of the buffer and reset the moved-from object to a safe empty state.
+   - **Expected result:** moved-from buffers are valid but empty.
+4) Implement `sum()`.
+   - Iterate over the buffer and return the sum of values.
+   - **Expected result:** test code that moves and sums passes.
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+6) Save artifacts in `learner/artifacts/`.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -117,5 +141,5 @@ See `troubleshooting.md`. Quick triage:
 - If tests fail: re-check your logic against the required behavior.
 
 ## 13) Stretch goals
-- Add an extra test case that exercises an edge condition.
-- Refactor helper logic into `learner/include/` and keep the interface clean.
+- Add a bounds-checked `at()` method that returns an error code or throws.
+- Add a `swap()` method and use it in move assignment.

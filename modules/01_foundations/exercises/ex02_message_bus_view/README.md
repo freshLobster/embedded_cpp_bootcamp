@@ -2,14 +2,40 @@
 
 ## 1) Title + Mission
 Mission: Implement a const-correct, non-owning bus view that exposes subscribers without copying or allowing mutation.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+
 ## 2) What you are building (plain English)
 You are building a read-only view type that provides non-owning access to subscriber metadata, so callers can inspect without taking ownership or modifying the underlying storage.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+
 ## 3) Why it matters (embedded/robotics/defense relevance)
 In autonomy pipelines, passing views instead of owning copies preserves performance and keeps ownership boundaries explicit, which reduces accidental allocations and data races.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
-## 4) Concepts (short lecture)
-Non-owning view types such as span or string_view describe contiguous ranges without owning them, enabling zero-copy inspection when you only need read access.【https://en.cppreference.com/w/cpp/container/span†L400-L400】【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
 
-Clear ownership boundaries improve modular architecture because the producer remains responsible for data lifetime while consumers use read-only views.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+## 4) Concepts (short lecture)
+`std::string_view` and `std::span` are non-owning views: they refer to a contiguous sequence of characters or objects without managing lifetime. This allows zero-copy inspection when a consumer only needs read access.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+
+Const-correctness matters for APIs that expose internal state. A read-only view should not allow modification of the underlying container, which means the view should return `std::string_view` or `const` references and never non-const accessors.【https://en.cppreference.com/w/cpp/string/basic_string_view†L389-L389】
+
+A view must never outlive the storage it refers to. The safest mental model is that the view is a temporary lens that is valid only as long as the owning `MessageBus` object is alive and has not reallocated its storage.【https://en.cppreference.com/w/cpp/container/span†L400-L400】
+
+Example (not your solution): a view over a vector of strings using `std::string_view`.
+```cpp
+class BusView {
+public:
+    explicit BusView(const std::vector<std::string>* subs) : subs_(subs) {}
+    size_t size() const { return subs_ ? subs_->size() : 0; }
+    std::string_view at(size_t i) const { return (*subs_)[i]; }
+private:
+    const std::vector<std::string>* subs_{nullptr};
+};
+```
+
+Example usage (not your solution):
+```cpp
+MessageBus bus;
+bus.subscribe("imu");
+BusView v = bus.view();
+// v.at(0) returns a string_view without copying.
+```
+
 ## 5) Repo context (this folder only)
 - `learner/`: incomplete code you must finish. Contains its own `CMakeLists.txt`, `include/`, `src/`, `tests/`, and `artifacts/`.
 - `solution/`: working reference that compiles and passes tests immediately.
@@ -74,18 +100,22 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ```
 
 ## 8) Step-by-step implementation instructions
-1) Open `learner/src/main.cpp` and read the TODOs.
-   - Identify the required behavior for a const-correct read-only view over a message bus subscriber list.
-   - **Expected result:** you can explain what `exercise()` must verify before it returns success.
-2) Implement the required logic in `exercise()`.
-   - Introduce any helper classes or functions directly in `learner/src/main.cpp` or in `learner/include/` if you prefer.
-   - **Expected result:** the code compiles without `#error` and the logic enforces the required behavior.
-3) Rebuild and run tests.
-   - Run `cmake --build build_learner` and `ctest --test-dir build_learner --output-on-failure`.
-   - **Expected result:** tests pass and return 0.
-4) Save artifacts.
-   - Copy build and test output to `learner/artifacts/build.log` and `learner/artifacts/ctest.log`.
-   - **Expected result:** those files exist and contain your command output.
+1) Open `learner/src/main.cpp` and review the `MessageBus` and `BusView` skeletons.
+   - Identify which methods must be const and which should avoid copying.
+   - **Expected result:** you can explain why `BusView` must not own data.
+2) Implement `MessageBus::subscribe`.
+   - Store the subscriber name in the internal container (move from the parameter).
+   - **Expected result:** the bus stores names without additional copies.
+3) Implement `MessageBus::view` and `BusView::size`.
+   - `view()` should return a `BusView` that refers to the internal container.
+   - `size()` should handle the null-pointer case safely.
+   - **Expected result:** `view.size()` matches the subscriber count.
+4) Implement `BusView::at` to return a `std::string_view`.
+   - Do not return `std::string` or a mutable reference.
+   - **Expected result:** callers can read values without modifying them.
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+   - **Expected result:** `ctest` reports `100% tests passed`.
+6) Save artifacts in `learner/artifacts/`.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.
@@ -117,5 +147,5 @@ See `troubleshooting.md`. Quick triage:
 - If tests fail: re-check your logic against the required behavior.
 
 ## 13) Stretch goals
-- Add an extra test case that exercises an edge condition.
-- Refactor helper logic into `learner/include/` and keep the interface clean.
+- Add bounds checking and return an empty view for invalid indices.
+- Implement a `BusView::begin()/end()` pair to allow ranged-for iteration.
