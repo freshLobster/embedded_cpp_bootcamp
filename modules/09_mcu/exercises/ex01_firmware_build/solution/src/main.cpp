@@ -1,9 +1,10 @@
 // Solution: UART sample framing
 // Encodes and decodes a simple "S:<value>\n" frame format.
+// This mirrors typical MCU telemetry framing conventions.
 
-#include <cassert>
-#include <string>
-#include <string_view>
+#include <cassert>     // assert() provides a minimal self-check.
+#include <string>      // std::string for encoding.
+#include <string_view> // std::string_view for parsing.
 
 std::string encode_sample(int value) {
     // Prefix with "S:" and terminate with newline for easy framing.
@@ -13,7 +14,7 @@ std::string encode_sample(int value) {
 int decode_sample(std::string_view text) {
     // Validate prefix.
     if (text.rfind("S:", 0) != 0) return -1;
-    // Parse the remainder as an integer.
+    // Parse the remainder as an integer (stoi stops at newline).
     return std::stoi(std::string(text.substr(2)));
 }
 

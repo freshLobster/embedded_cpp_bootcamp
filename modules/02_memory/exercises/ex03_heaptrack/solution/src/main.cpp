@@ -10,10 +10,10 @@ int allocate_and_free(int n) {
     for (int i = 1; i <= n; ++i) {
         // Allocate a vector with predictable size.
         // The allocation size grows with i, creating a clear pattern.
-        std::vector<int> v(static_cast<size_t>(i));
+        std::vector<int> v(static_cast<size_t>(i), 1);
         for (int j = 0; j < i; ++j) {
-            v[static_cast<size_t>(j)] = j + 1;
-            sum += j + 1;
+            // Touch each element so tools observe reads/writes.
+            sum += v[static_cast<size_t>(j)];
         }
         // v is freed at end of loop iteration, creating a clear allocation pattern.
     }

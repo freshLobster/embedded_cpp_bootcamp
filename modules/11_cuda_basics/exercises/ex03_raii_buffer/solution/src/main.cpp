@@ -1,9 +1,10 @@
 // Solution: RAII buffer with move-only semantics
 // Models safe ownership transfer similar to CUDA buffer wrappers.
+// The buffer uses new[]/delete[] for simplicity in a CPU-only build.
 
-#include <cassert>
-#include <cstddef>
-#include <utility>
+#include <cassert> // assert() provides a minimal self-check.
+#include <cstddef> // size_t for buffer sizes.
+#include <utility> // std::move for move operations.
 
 class CudaBuffer {
 public:

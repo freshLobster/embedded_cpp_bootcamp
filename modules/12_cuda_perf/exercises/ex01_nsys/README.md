@@ -17,6 +17,7 @@ Even when you cannot run Nsight, representing ranges as explicit strings is a us
 Example (not your solution): simple marker string.
 ```cpp
 std::string profile_markers() {
+    // Return a deterministic label for the profiler timeline.
     return "nsys:range=compute";
 }
 ```
@@ -59,22 +60,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and locate the marker function.
    The exercise expects a string that includes "nsys" so tests can detect it. The exact content is not critical as long as it is deterministic and clearly indicates a profiling range. (Source: [Nsight Systems documentation](https://docs.nvidia.com/nsight-systems/))
+   How: decide on a short label that would make sense in a timeline (e.g., "compute", "io", or "preprocess").
    - **Expected result:** you can describe the string format you will return.
 
 2) Implement `profile_markers()` with a clear, fixed string.
    Return a constant string such as `"nsys:range=compute"`. This models how you would name a profiling range in real code. (Source: [Nsight Systems documentation](https://docs.nvidia.com/nsight-systems/))
+   How: return the string literal directly; do not generate it dynamically so the output is stable.
    - **Expected result:** the string contains "nsys" and a range name.
 
 3) Implement `exercise()` to validate the marker.
    Call `profile_markers()` and verify the string contains `"nsys"`. Return 0 on success. (Source: [cppreference: std::string::find](https://en.cppreference.com/w/cpp/string/basic_string/find))
+   How: use `find()` and compare against `std::string::npos` to detect the substring.
    - **Expected result:** `exercise()` returns 0.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, verify your string contains "nsys" and is not empty. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: remove the `#error`, rebuild, and run `ctest`. If the test fails, print the string temporarily to check its contents.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. If you run `nsys`, save a note in `learner/artifacts/nsys_notes.txt`. (Source: [Nsight Systems documentation](https://docs.nvidia.com/nsight-systems/))
+   How: redirect outputs with `> file 2>&1` so you capture error messages.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

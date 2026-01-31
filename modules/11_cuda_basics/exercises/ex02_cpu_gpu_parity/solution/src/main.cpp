@@ -1,8 +1,9 @@
 // Solution: CPU reference vector addition
 // This serves as the correctness baseline for GPU parity checks.
+// Keep this code simple and deterministic for easy comparison.
 
-#include <cassert>
-#include <vector>
+#include <cassert> // assert() provides a minimal self-check.
+#include <vector>  // std::vector for inputs/outputs.
 
 std::vector<int> add_cpu(const std::vector<int>& a, const std::vector<int>& b) {
     std::vector<int> out;

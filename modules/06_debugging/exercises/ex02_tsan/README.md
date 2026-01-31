@@ -19,10 +19,13 @@ Example (not your solution): protecting a log with a mutex.
 class ThreadSafeLog {
 public:
     void log(int v) {
+        // Lock before touching shared state.
         std::lock_guard<std::mutex> lock(m_);
+        // Push the new entry while holding the lock.
         entries_.push_back(v);
     }
 private:
+    // Mutex guards the vector below.
     std::mutex m_;
     std::vector<int> entries_;
 };
@@ -74,30 +77,42 @@ ctest --test-dir build_tsan --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the shared state.
    The shared state is the log container that multiple threads will write into. Without synchronization, this causes data races and undefined behavior. Your goal is to protect all accesses to shared state with a mutex. (Source: [cppreference: std::mutex](https://en.cppreference.com/w/cpp/thread/mutex))
-   - **Expected result:** you can point to the exact data structure that needs protection.
+   How: locate the `ThreadSafeLog` class and note which member holds the entries. Then find each method that touches that member. Those methods are the ones that must lock.
+   - **Expected result:** you can point to the exact data structure that needs protection and the methods that access it.
 
 2) Define a `ThreadSafeLog` class with a mutex and a vector.
-   Store entries in a `std::vector<int>` and guard it with a `std::mutex`. This establishes the basic synchronization primitive you will use for both writes and reads. (Source: [cppreference: std::lock_guard](https://en.cppreference.com/w/cpp/thread/lock_guard))
+   Store entries in a `std::vector<int>` and guard it with a `std::mutex`. This establishes the synchronization primitive you will use for both writes and reads. (Source: [cppreference: std::lock_guard](https://en.cppreference.com/w/cpp/thread/lock_guard))
+   How: ensure the mutex is a member of the class, not a local variable. A local mutex would only protect a single call, not the shared state.
    - **Expected result:** the class has a clear ownership boundary and a single lock.
 
 3) Implement `log(int v)` with a lock guard.
    Use `std::lock_guard<std::mutex>` to lock the mutex before pushing to the vector. Release happens automatically when the guard leaves scope. This prevents concurrent writes from corrupting the vector. (Source: [cppreference: std::lock_guard](https://en.cppreference.com/w/cpp/thread/lock_guard))
+   How: add `std::lock_guard<std::mutex> lock(m_);` as the first line in `log`, then call `entries_.push_back(v);`. Keep the critical section short and do not call other functions from inside the lock unless necessary.
    - **Expected result:** multiple threads can call `log` without races or crashes.
 
 4) Implement `sum()` with the same lock.
-   Protect reads with the same mutex so you are not reading while another thread writes. Compute the sum deterministically inside the critical section or by copying data under the lock and summing afterward. (Source: [cppreference: std::mutex](https://en.cppreference.com/w/cpp/thread/mutex))
+   Protect reads with the same mutex so you are not reading while another thread writes. Compute the sum deterministically inside the critical section. (Source: [cppreference: std::mutex](https://en.cppreference.com/w/cpp/thread/mutex))
+   How: lock the mutex, create a local `int total = 0`, iterate over `entries_`, and return the total. Do not modify `entries_` while summing.
    - **Expected result:** the sum equals the number of logged entries.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you used the mutex in both `log` and `sum`. A missing lock in either function still leaves a data race. (Source: [LLVM ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html))
+   How: remove the `#error` line only after `log` and `sum` are complete, then rebuild and run `ctest`. The self-test creates multiple threads, so missing locks usually show up immediately.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Run TSan to confirm the race is gone (optional but recommended).
    Build with `-fsanitize=thread` and run the tests. TSan will report data races if any remain. Save the output if it reports issues. (Source: [LLVM ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html))
+   How: configure a separate build:
+   `cmake -S learner -B build_tsan -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer"`
+   Then run `ctest --test-dir build_tsan --output-on-failure`.
    - **Expected result:** no data race warnings.
 
 7) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. Save `tsan.log` if you run TSan. (Source: [LLVM ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html))
+   How: run:
+   `cmake --build build_learner > learner/artifacts/build.log 2>&1`
+   `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`
+   `ctest --test-dir build_tsan --output-on-failure > learner/artifacts/tsan.log 2>&1` (if you ran TSan)
    - **Expected result:** all required logs exist in the artifacts folder.
 
 ## 9) Verification

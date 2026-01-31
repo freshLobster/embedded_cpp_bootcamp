@@ -90,30 +90,37 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and locate the allocator injection point.
    The `PmrQueue` constructor takes a `std::pmr::memory_resource*` and passes it into `storage_`. This is the key: all allocations performed by `storage_` must come from that resource. Identify exactly where `storage_` is constructed and how the resource is passed in. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
+   How: open the class definition and trace the member initializer list to the `storage_(resource)` call, then confirm the type is `std::pmr::vector<int>`.
    - **Expected result:** you can explain how the queue is bound to the memory resource at construction.
 
 2) Implement `PmrQueue::resource()` to expose the allocator.
    `std::pmr::vector` uses a `polymorphic_allocator` internally. Call `storage_.get_allocator().resource()` and return it. This is how you prove, at runtime, which resource the queue is using. (Source: [cppreference: std::pmr::polymorphic_allocator](https://en.cppreference.com/w/cpp/memory/polymorphic_allocator))
+   How: implement the function in a single return statement so you do not accidentally copy or allocate anything else.
    - **Expected result:** the test sees the exact same pointer that was passed into the constructor.
 
 3) Implement `push()` with a clear FIFO policy.
    Append values to `storage_` with `push_back`. This maintains order. Because `storage_` is a PMR container, any growth allocations must come from the provided memory resource. Do not allocate any additional containers in `push()`. (Source: [cppreference: std::vector::push_back](https://en.cppreference.com/w/cpp/container/vector/push_back))
+   How: call `storage_.push_back(value);` and do not reset `head_` or mutate other state.
    - **Expected result:** after three pushes, `storage_` holds {1,2,3} in that order.
 
 4) Implement `pop()` using the `head_` index.
    If `head_` is already at or beyond `storage_.size()`, the queue is empty and you should return false. Otherwise, read `storage_[head_]`, store it in `out`, then increment `head_`. This gives FIFO semantics without erasing elements (a simple, deterministic queue model for the exercise). (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: write `if (head_ >= storage_.size()) return false; out = storage_[head_++]; return true;`.
    - **Expected result:** the first pop returns 1, the second returns 2.
 
 5) Implement `size()` as remaining elements.
    The queue size is `storage_.size() - head_`. This is the number of elements not yet popped. If you return `storage_.size()` directly, your size will be wrong after pops. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: return `storage_.size() - head_` and keep the type `size_t` to avoid signed/unsigned warnings.
    - **Expected result:** after two pops from three pushes, `size()` returns 1.
 
 6) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If compilation fails, ensure `<memory_resource>` is included and that you didn't accidentally shadow `head_`. (Source: [cppreference: std::pmr::memory_resource](https://en.cppreference.com/w/cpp/memory/memory_resource))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 7) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so the grader can verify your run. (Source: [cppreference: std::pmr::memory_resource](https://en.cppreference.com/w/cpp/memory/memory_resource))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

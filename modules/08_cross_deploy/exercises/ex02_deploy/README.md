@@ -16,6 +16,7 @@ Constructing command strings should be deterministic and explicit. For teaching 
 
 Example (not your solution): building an scp command.
 ```cpp
+// Assemble the command in a single, deterministic string.
 std::string cmd = "scp " + local + " " + user + "@" + host + ":" + remote;
 ```
 
@@ -57,22 +58,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the required output format.
    The function must return a string in the exact `scp` format: `scp <local> <user>@<host>:<remote>`. The test checks for this substring, so spacing and separators must be correct. (Source: [OpenSSH scp manual](https://man.openbsd.org/scp))
+   How: write the expected command using the example values from `exercise()` so you can compare your output character-by-character.
    - **Expected result:** you can write the target format without looking it up.
 
 2) Implement `make_scp_cmd` using string concatenation.
    Start with `"scp "`, append the local path, a space, then `user@host:remote`. Keep it simple and deterministic. Do not introduce extra whitespace or quotes unless required by your inputs. (Source: [OpenSSH scp manual](https://man.openbsd.org/scp))
+   How: build the string in order and avoid any conditional logic. This exercise is about precise formatting, not input validation.
    - **Expected result:** calling the function with test inputs returns the expected command string.
 
 3) Implement `exercise()` to validate the command.
    Call `make_scp_cmd` with known values and check that the command contains the expected string. Return 0 on success and non-zero on failure. (Source: [OpenSSH scp manual](https://man.openbsd.org/scp))
+   How: store the command in a local variable, then use `find()` to check for the exact substring. This is a robust way to detect extra spaces or missing separators.
    - **Expected result:** `exercise()` returns 0 when the command format is correct.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, compare your output string against the expected format and check for missing spaces. (Source: [OpenSSH scp manual](https://man.openbsd.org/scp))
+   How: remove the `#error`, rebuild, and run `ctest`. If the test fails, print the string locally (temporarily) or compare with the expected literal in `exercise()`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [OpenSSH scp manual](https://man.openbsd.org/scp))
+   How: use `> file 2>&1` so stderr is captured alongside stdout.
    - **Expected result:** logs exist and contain your command output.
 
 ## 9) Verification

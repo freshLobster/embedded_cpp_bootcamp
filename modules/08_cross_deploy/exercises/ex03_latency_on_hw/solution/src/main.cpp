@@ -1,9 +1,10 @@
 // Solution: Jitter statistics
 // Computes min, max, and span from latency samples.
+// These values are a lightweight proxy for timing jitter.
 
-#include <cassert>
-#include <vector>
-#include <limits>
+#include <cassert> // assert() provides a minimal self-check.
+#include <vector>  // std::vector holds the samples.
+#include <limits>  // numeric_limits for initialization.
 
 struct JitterStats {
     int min{0};

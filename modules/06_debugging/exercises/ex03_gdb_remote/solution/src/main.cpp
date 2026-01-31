@@ -1,8 +1,9 @@
 // Solution: Deterministic checksum for debugging practice
 // This provides a predictable function to step through in gdb/gdbserver.
+// The call chain is intentionally shallow but includes a second layer.
 
-#include <cassert>
-#include <string_view>
+#include <cassert>     // assert() provides a minimal self-check.
+#include <string_view> // std::string_view for read-only input.
 
 int checksum(std::string_view s) {
     int sum = 0;
@@ -13,10 +14,15 @@ int checksum(std::string_view s) {
     return sum;
 }
 
+int checksum_layer2(std::string_view s) {
+    // Extra layer to deepen the call stack during debugging.
+    return checksum(s);
+}
+
 // exercise() runs a minimal self-check for this solution.
 // Return 0 on success; non-zero indicates which invariant failed.
 int exercise() {
-    int c = checksum("GDB");
+    int c = checksum_layer2("GDB");
     // The checksum should be positive for a non-empty ASCII string.
     if (c <= 0) {
         return 1;

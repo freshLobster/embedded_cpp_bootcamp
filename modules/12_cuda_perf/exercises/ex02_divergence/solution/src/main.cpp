@@ -1,9 +1,10 @@
 // Solution: Warp divergence metric
 // Computes average active lanes from warp masks.
+// This is a CPU-side proxy for divergence analysis.
 
-#include <cassert>
-#include <cstdint>
-#include <vector>
+#include <cassert> // assert() provides a minimal self-check.
+#include <cstdint> // uint32_t for masks.
+#include <vector>  // std::vector for mask list.
 
 int popcount32(uint32_t v) {
     int c = 0;

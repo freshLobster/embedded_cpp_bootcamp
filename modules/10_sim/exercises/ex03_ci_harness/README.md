@@ -16,6 +16,7 @@ Building a JSON-like string by hand is acceptable for a small exercise, but it m
 
 Example (not your solution): manifest format with comments.
 ```cpp
+// A minimal JSON-like manifest with two artifacts.
 std::string out = "{\"artifacts\":[\"a.log\",\"b.csv\"]}";
 ```
 
@@ -52,26 +53,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and confirm the expected JSON shape.
    The manifest must look like `{"artifacts":["a.log","b.csv"]}`. The tests only check for substring presence, but you should still produce a valid JSON-like structure. (Source: [CTest documentation](https://cmake.org/cmake/help/latest/manual/ctest.1.html))
+   How: write the exact output for the sample list so you have a literal to compare against while building the string.
    - **Expected result:** you can write the exact output string for a sample list.
 
 2) Build the manifest string step by step.
    Start with `{"artifacts":[`, then append each artifact in quotes. Insert commas between elements and close with `]}`. This ensures deterministic formatting. (Source: [cppreference: std::string::append](https://en.cppreference.com/w/cpp/string/basic_string/append))
+   How: build the string in a loop using indices. Add the comma only when `i + 1 < artifacts.size()` so you do not leave a trailing delimiter.
    - **Expected result:** a list of two artifacts produces `{"artifacts":["a.log","b.csv"]}`.
 
 3) Handle empty lists gracefully.
    If the list is empty, the manifest should still be valid: `{"artifacts":[]}`. Do not add trailing commas. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: special-case `artifacts.empty()` at the top, or rely on the loop naturally skipping and just closing with `]}`.
    - **Expected result:** empty input yields a correctly formatted empty array.
 
 4) Implement `exercise()` to validate the manifest.
    Create a list with two filenames, call the manifest function, and ensure both filenames appear in the string. Return 0 on success. (Source: [cppreference: std::string::find](https://en.cppreference.com/w/cpp/string/basic_string/find))
+   How: check both `a.log` and `b.csv` with `find()` so you know both entries are present.
    - **Expected result:** `exercise()` returns 0 when the manifest includes both names.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check your quote placement and comma logic. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: remove the `#error`, rebuild, then run `ctest`. If the output is missing quotes, re-check where you added `\"`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [CTest documentation](https://cmake.org/cmake/help/latest/manual/ctest.1.html))
+   How: redirect outputs with `> file 2>&1` so errors are captured.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

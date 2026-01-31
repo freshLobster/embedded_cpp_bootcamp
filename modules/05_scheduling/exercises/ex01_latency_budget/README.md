@@ -90,26 +90,32 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `compute_stats` in `learner/src/main.cpp` and restate the inputs/outputs.
    The function receives a copy of the samples, which means you are free to sort without mutating the caller's data. The expected outputs for the provided samples are p50=50 and p95=100. Understanding the expected values first helps validate your index math. (Source: [cppreference: std::sort](https://en.cppreference.com/w/cpp/algorithm/sort))
+   How: write the sample list, sort it by hand, and locate the 50th and 95th percentile positions using the formula provided.
    - **Expected result:** you can explain why sorting a local copy is safe and why the expected p50/p95 are 50/100.
 
 2) Sort the samples in ascending order.
    Use `std::sort(samples.begin(), samples.end())`. Percentile selection assumes the data is ordered; without sorting, the percentile indices are meaningless. (Source: [cppreference: std::sort](https://en.cppreference.com/w/cpp/algorithm/sort))
+   How: call `std::sort` on the local copy and avoid any extra allocations or temporary vectors.
    - **Expected result:** samples are strictly ordered from smallest to largest.
 
 3) Compute deterministic percentile indices.
-   Use `(samples.size() - 1) * 0.50` for p50 and `(samples.size() - 1) * 0.95` for p95, then convert to `size_t`. This is a simple, deterministic percentile definition that is easy to review and test. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   Use `(samples.size() - 1) * 0.50` for p50 (median in 0-based indexing). For p95, use `samples.size() * 0.95` and clamp to `size - 1` so the 95th percentile can select the last element for small datasets. This matches the expected result for the 10-element example. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: compute `idx50` with `(size - 1) * 0.50`, compute `idx95` with `size * 0.95`, then if `idx95 >= size`, set it to `size - 1`.
    - **Expected result:** p50=50 and p95=100 for the provided dataset.
 
 4) Return `LatencyStats` without side effects.
    Construct and return the struct directly. Do not print or log inside `compute_stats`; keep it pure so tests remain deterministic. (Source: [cppreference: aggregate initialization](https://en.cppreference.com/w/cpp/language/aggregate_initialization))
+   How: return `{samples[idx50], samples[idx95]};` and avoid modifying any global state.
    - **Expected result:** the test observes the correct percentile values.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, verify you are using `(size - 1)` in index calculations and not `size`, which can produce out-of-range indices. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` for grading. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

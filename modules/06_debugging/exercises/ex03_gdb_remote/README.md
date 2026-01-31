@@ -65,30 +65,43 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and define the behavior you need.
    The TODO asks for a checksum routine and a predictable call chain. The solution should be simple and deterministic so that you can step through it in a debugger and see expected values. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
-   - **Expected result:** you can describe the checksum algorithm in one sentence.
+   How: locate `checksum`, `checksum_layer2`, and `exercise()`. Note the input string and the expected property (checksum must be positive). Write down the exact loop you plan to implement so you can later verify each variable in GDB.
+   - **Expected result:** you can describe the checksum algorithm in one sentence and identify which variables to watch.
 
 2) Implement `checksum` as a byte-sum.
    Iterate over each byte in a `std::string_view` and add its value to a running integer sum. Use `unsigned char` to avoid sign-extension issues. This makes the checksum repeatable across platforms. (Source: [RFC 1071](https://www.rfc-editor.org/rfc/rfc1071))
-   - **Expected result:** checksum("GDB") returns a positive integer.
+   How: declare `int sum = 0;` then use a range-based for loop: `for (unsigned char c : s) { sum += static_cast<int>(c); }`. Return `sum` at the end. Keep the function small so it is easy to step through.
+   - **Expected result:** `checksum("GDB")` returns a positive integer.
 
-3) Implement `exercise()` to drive the checksum.
-   Call `checksum("GDB")` and validate that the return value is greater than zero. Return 0 on success and non-zero on failure. This creates a minimal, predictable call chain for debugging. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+3) Implement `checksum_layer2` to deepen the call chain.
+   The extra layer creates a more realistic debugger flow and lets you practice stepping into nested calls. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+   How: call `return checksum(s);` directly. Do not add logic here; keep it a clean wrapper so the stack frame is easy to inspect.
+   - **Expected result:** `checksum_layer2("GDB")` returns the same value as `checksum("GDB")`.
+
+4) Implement `exercise()` to drive the checksum.
+   Call `checksum_layer2("GDB")` and validate that the return value is greater than zero. Return 0 on success and non-zero on failure. This creates a minimal, predictable call chain for debugging. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+   How: store the checksum in a local variable `c`, check `if (c <= 0) return 1;`, then return 0. Keeping the code branchy makes it easy to set breakpoints and observe the condition.
    - **Expected result:** `exercise()` returns 0 when checksum is implemented correctly.
 
-4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
+5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you included `<string_view>` and that your loop uses unsigned bytes. (Source: [RFC 1071](https://www.rfc-editor.org/rfc/rfc1071))
+   How: delete the `#error` line, rebuild with `cmake --build build_learner`, and run `ctest --test-dir build_learner --output-on-failure`. Any compilation error here usually means the function signatures do not match.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
-5) Practice local debugging with gdb.
+6) Practice local debugging with gdb.
    Run `gdb ./build_learner/ex03_gdb_remote`, set a breakpoint on `checksum`, and step through the loop. Inspect `sum` as it updates. This ensures your symbols and debug flow are correct before going remote. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+   How: inside gdb, run:
+   `break checksum`, `run`, `next`, `print sum`, `step`. Repeat until the loop finishes.
    - **Expected result:** you can step through the loop and observe `sum` changing.
 
-6) (Optional) practice remote debugging with gdbserver.
+7) (Optional) practice remote debugging with gdbserver.
    Start `gdbserver :1234 ./build_learner/ex03_gdb_remote` on the target, then connect from your host: `gdb` -> `target remote <ip>:1234`. Set breakpoints and step as above. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+   How: on the target run `gdbserver :1234 ./build_learner/ex03_gdb_remote`. On the host, run `gdb`, then `target remote <ip>:1234`, then `break checksum`. Use `continue` and `step` to verify symbols and stack frames.
    - **Expected result:** breakpoints hit on the target and values are visible remotely.
 
-7) Capture artifacts.
+8) Capture artifacts.
    Save build output to `learner/artifacts/build.log`, test output to `learner/artifacts/ctest.log`, and any gdb session notes to `learner/artifacts/gdb_notes.txt`. (Source: [GDB manual](https://sourceware.org/gdb/current/onlinedocs/gdb/))
+   How: redirect outputs to files and copy/paste the gdb command transcript into `gdb_notes.txt` so your troubleshooting steps are reproducible.
    - **Expected result:** artifacts exist and contain your command outputs.
 
 ## 9) Verification

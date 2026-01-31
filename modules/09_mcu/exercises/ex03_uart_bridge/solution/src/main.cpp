@@ -1,9 +1,10 @@
 // Solution: UART frame encoder/decoder with checksum
 // The checksum detects corruption in a simple payload frame.
+// This mirrors lightweight MCU serial protocols.
 
-#include <cassert>
-#include <string>
-#include <string_view>
+#include <cassert>     // assert() provides a minimal self-check.
+#include <string>      // std::string for building frames.
+#include <string_view> // std::string_view for parsing.
 
 unsigned checksum(std::string_view payload) {
     unsigned sum = 0;

@@ -1,12 +1,14 @@
 // Solution: Cross-build target probe
 // Uses compile-time macros to identify the target architecture.
+// This is a compile-time decision so it works in cross-build pipelines.
 
-#include <cassert>
-#include <string>
+#include <cassert> // assert() provides a minimal self-check.
+#include <string>  // std::string for the return value.
 
 std::string target_arch() {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(_M_ARM64)
     // GCC/Clang define __aarch64__ for 64-bit ARM targets.
+    // MSVC uses _M_ARM64 for the same target.
     return "aarch64";
 #elif defined(__x86_64__) || defined(_M_X64)
     // __x86_64__ is used by GCC/Clang; _M_X64 is used by MSVC.

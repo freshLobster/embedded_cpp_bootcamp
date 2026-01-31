@@ -116,30 +116,37 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read the ScopeGuard skeleton in `learner/src/main.cpp` and map each method to a behavior in `exercise()`.
    The tests define the contract: (a) cleanup runs on scope exit, (b) cleanup does not run when dismissed, and (c) cleanup runs exactly once after a move. For each check in `exercise()`, write a short note in your own words describing which method must make that check pass. This forces you to reason about invariants before coding. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: create a small table with each `exercise()` block in the left column and the method(s) responsible in the right column (constructor, destructor, dismiss, move ctor, move assign).
    - **Expected result:** you can explain, line by line, which invariants are being tested and which method establishes them.
 
 2) Implement the constructor and `dismiss()` to establish the guard's state machine.
    In the constructor, move the callback into `fn_` and set `active_ = true`. This makes the guard responsible for calling the cleanup later. In `dismiss()`, flip `active_` to false and do nothing else; do not call the callback here. The goal is that "active means will run on destruction" and "dismissed means will never run." This separation keeps ownership (the stored function) independent from the execution decision (the active flag). (Source: [cppreference: std::function](https://en.cppreference.com/w/cpp/utility/functional/function))
+   How: in the constructor body, use `fn_(std::move(fn))` and set `active_` to `true`. In `dismiss()`, set `active_ = false` and do not touch `fn_`.
    - **Expected result:** you can create a guard and then call `dismiss()` without invoking the callback.
 
 3) Implement the destructor with a strict "exactly once" rule.
    The destructor should check `active_` first, then check `fn_` is non-empty, then invoke it. Do not throw or allocate in the destructor. You may optionally set `active_ = false` after invoking to make repeated calls impossible in debug builds. This is the core RAII behavior: cleanup runs at scope exit regardless of how the scope ends. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: guard the call with `if (active_ && fn_) { fn_(); active_ = false; }` and keep the body minimal.
    - **Expected result:** a guard that reaches scope exit without `dismiss()` will always invoke its callback once.
 
 4) Implement the move constructor with ownership transfer.
    Move the callback and copy the active flag from `other`. Immediately call `other.dismiss()` so the moved-from guard is inert. This avoids double invocation when both guards are destroyed. This step makes "exactly once" true even when ownership is transferred mid-scope. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: in the member initializer list, `fn_(std::move(other.fn_))` and `active_(other.active_)`, then call `other.dismiss()` in the body.
    - **Expected result:** a moved-from guard will not trigger cleanup on destruction; the moved-to guard will.
 
 5) Implement move assignment using "clean up then overwrite."
    If `*this` currently owns an active cleanup, you must run it before you overwrite `fn_` and `active_`. Otherwise you would leak a cleanup action. After cleaning up (if needed), move the callback and active flag from `other`, then dismiss `other`. This ordering is crucial: "old resource cleaned, new resource owned." (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: inside `operator=`, first check `if (active_ && fn_) { fn_(); }`, then move `fn_` and `active_` from `other`, and finally call `other.dismiss()`.
    - **Expected result:** move-assigning onto an active guard does not lose or duplicate cleanup.
 
 6) Remove `#error TODO_implement_exercise` and compile.
    Run the learner build commands. If you hit a compiler error, fix missing includes or signature mismatches first. Only then run `ctest`. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: delete the `#error` line, rebuild, and run `ctest --test-dir build_learner --output-on-failure` to confirm the self-check passes.
    - **Expected result:** compilation succeeds and `ctest` reports `100% tests passed`.
 
 7) Capture artifacts exactly as the grader expects.
    Redirect the build output to `learner/artifacts/build.log` and the test output to `learner/artifacts/ctest.log`. These files are evidence that you ran the correct commands. (Source: [C++ Core Guidelines, RAII (R.1)](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

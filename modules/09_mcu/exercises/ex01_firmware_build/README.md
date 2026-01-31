@@ -55,26 +55,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the frame format.
    The exercise requires a simple format like `"S:<value>\\n"`. This prefix makes it easy for the host to recognize valid frames and ignore noise. (Source: [ESP-IDF UART documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html))
+   How: write the expected frame for a known value (e.g., 42) so you can compare your encoder output exactly.
    - **Expected result:** you can write the exact frame format in one line.
 
 2) Implement `encode_sample(int value)`.
    Construct a string that starts with `"S:"`, appends the integer as text, and ends with a newline. Use `std::to_string` and keep the format deterministic. (Source: [cppreference: std::to_string](https://en.cppreference.com/w/cpp/string/basic_string/to_string))
+   How: build the string in order: prefix, value string, newline. Avoid extra spaces or formatting so the host parser stays simple.
    - **Expected result:** `encode_sample(42)` returns `"S:42\\n"`.
 
 3) Implement `decode_sample(std::string_view text)`.
    Validate the prefix `"S:"`, then parse the remainder as an integer. Return -1 for invalid frames so the caller can detect corruption. Convert the substring to `std::string` if you use `std::stoi`. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: check `text.size()` first, ensure it starts with `"S:"`, then strip the prefix and parse. If any check fails, return -1 immediately.
    - **Expected result:** decoding `"S:42\\n"` yields 42, invalid frames yield -1.
 
 4) Implement `exercise()` to validate the encode/decode pair.
    Encode a known sample, compare against the expected string, then decode and compare against the expected integer. This ensures the two functions are consistent. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: use explicit comparisons (`!=`) and return distinct error codes so you can see which direction failed.
    - **Expected result:** `exercise()` returns 0 when both directions are correct.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, verify your prefix logic and ensure you did not accidentally include extra whitespace. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: remove the `#error`, rebuild, and run `ctest`. If the output is close but not exact, print the encoded string temporarily to compare with the expected literal.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [ESP-IDF UART documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/uart.html))
+   How: redirect output with `> file 2>&1` so you capture any error messages as well.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

@@ -1,7 +1,8 @@
 // Solution: CUDA environment probe
 // Detects CUDA compilation via the __CUDACC__ macro.
+// This is a compile-time decision, not a runtime device check.
 
-#include <cassert>
+#include <cassert> // assert() provides a minimal self-check.
 
 constexpr bool cuda_available() {
 #if defined(__CUDACC__)

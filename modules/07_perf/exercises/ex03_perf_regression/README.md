@@ -17,8 +17,10 @@ Precomputing total size is a common optimization: sum the lengths of all parts a
 Example (not your solution): reserve then append.
 ```cpp
 std::string out;
+// Reserve once to avoid repeated reallocations.
 out.reserve(total);
 for (...) {
+    // Append each part and delimiter in order.
     out += part;
     out += ',';
 }
@@ -57,26 +59,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the performance risk.
    The goal is to join strings without repeated reallocations. If you append blindly, `std::string` may reallocate multiple times and copy data repeatedly. Your implementation should reserve the final size up front. (Source: [cppreference: std::string::reserve](https://en.cppreference.com/w/cpp/string/basic_string/reserve))
+   How: locate `join_with_commas` and note the TODO list. The missing steps map directly to how you will compute size, reserve, and append.
    - **Expected result:** you can explain why repeated `+=` without reserve can be slow.
 
 2) Compute the total output length.
    Sum the sizes of all parts, then add the number of delimiters (parts.size() - 1). This gives the exact number of characters in the final string. (Source: [cppreference: std::string::size](https://en.cppreference.com/w/cpp/string/basic_string/size))
+   How: write a loop that adds `parts[i].size()` to a `size_t total`. After the loop, add the delimiter count. Handle the empty vector case first to avoid underflow when `parts.size()` is 0.
    - **Expected result:** for {"a","b","c"} the total is 5 (3 letters + 2 commas).
 
 3) Reserve the capacity once.
    Create the output string and call `out.reserve(total)` before appending. This ensures the string allocates once and does not grow repeatedly as you append. (Source: [cppreference: std::string::reserve](https://en.cppreference.com/w/cpp/string/basic_string/reserve))
+   How: declare `std::string out;` then call `out.reserve(total);` before any appends. This is the key performance fix.
    - **Expected result:** appends do not trigger repeated reallocations.
 
 4) Append parts and delimiters in order.
    Loop over the vector, append each part, and append a comma only between elements. This produces correct formatting and avoids a trailing comma. (Source: [cppreference: std::string::append](https://en.cppreference.com/w/cpp/string/basic_string/append))
+   How: use a for-loop over indices. Append the part first, then if `i + 1 < parts.size()`, append `','`. This pattern avoids an extra comma at the end.
    - **Expected result:** joining {"a","b","c"} produces "a,b,c".
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you handle the empty-vector case and that your delimiter logic avoids a trailing comma. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: remove `#error`, rebuild, and run `ctest`. A failure often means you forgot the empty-input guard or miscounted commas.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [cppreference: std::string::reserve](https://en.cppreference.com/w/cpp/string/basic_string/reserve))
+   How: use `> file 2>&1` so both stdout and stderr are preserved.
    - **Expected result:** logs exist and contain command output.
 
 ## 9) Verification

@@ -103,14 +103,17 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and decode the expected sum.
    The test calls `allocate_and_free(4)` and expects a sum of 10, which is 1+2+3+4. This tells you the exact deterministic workload the tests want: each iteration adds a known sequence so the sum can be predicted. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
+   How: write the series for `n=4` on paper and verify that your loop will add exactly that sequence.
    - **Expected result:** you can explain how your loop will produce the sum 10.
 
 2) Implement a deterministic allocation workload in `allocate_and_free`.
-   For `i` from 1 to `n`, allocate a `std::vector<int>` of size `i`, fill it with values `1..i`, and add those values to a running sum. The vector must go out of scope each iteration so allocations and frees are visible to the profiler. This creates a predictable, repeatable allocation pattern. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   For `i` from 1 to `n`, allocate a `std::vector<int>` of size `i`, fill it with `1`s, and add all elements to a running sum. This yields a sum of `1 + 2 + ... + n`, which matches the test expectation for `n=4`. The vector must go out of scope each iteration so allocations and frees are visible to the profiler. This creates a predictable, repeatable allocation pattern. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: inside the loop, create the vector as a local variable initialized with `1`s, then iterate over it and add each element to a local `sum`. Let the vector fall out of scope at the end of each iteration.
    - **Expected result:** each call to `allocate_and_free(n)` performs the same allocations and returns the same sum.
 
 3) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, check your sum math and ensure the loop bounds are correct (1..n). (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 4) Run heap profiling and save artifacts.
@@ -120,6 +123,7 @@ ctest --test-dir build_solution -C Debug --output-on-failure
    ms_print learner/artifacts/massif.out > learner/artifacts/massif.txt
    ```
    If Valgrind is not available, capture the program output to `learner/artifacts/heap_profile.txt` and note that it is the fallback. (Source: [Valgrind Massif manual](https://valgrind.org/docs/manual/ms-manual.html))
+   How: run the exact commands above and confirm the output files appear in `learner/artifacts/` before moving on.
    - **Expected result:** the artifact files exist and contain heap profile data.
 
 ## 9) Verification

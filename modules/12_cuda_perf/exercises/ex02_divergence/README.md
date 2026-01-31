@@ -18,9 +18,11 @@ Example (not your solution): popcount and active fraction.
 ```cpp
 int popcount32(uint32_t v) {
     int c = 0;
+    // Clear one set bit per iteration.
     while (v) { v &= v - 1; ++c; }
     return c;
 }
+// Convert active lanes to a fraction of 32.
 double active = static_cast<double>(popcount32(mask)) / 32.0;
 ```
 
@@ -57,22 +59,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the required outputs.
    You must compute the average active lanes for a set of 32-bit masks. The test uses two masks: all lanes active and none active, so the average should be ~0.5. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   How: compute the average by hand: (32/32 + 0/32) / 2 = 0.5. This is the expected target.
    - **Expected result:** you can compute the expected average by hand.
 
 2) Implement `popcount32(uint32_t v)`.
    Use the classic `v &= v - 1` loop to count set bits. This counts active lanes efficiently and deterministically. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   How: initialize `count = 0`, then loop while `v != 0`, clear the lowest set bit, increment `count`, and return it.
    - **Expected result:** popcount32(0xFFFFFFFF) returns 32, popcount32(0x0) returns 0.
 
 3) Implement `average_active_lanes`.
    Sum the active fraction for each mask (popcount / 32.0) and divide by the number of masks. Return 0.0 for empty input. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   How: if `masks.empty()`, return 0.0. Otherwise compute `sum += popcount32(m) / 32.0` and finally return `sum / masks.size()`.
    - **Expected result:** two masks (all active, none active) yield ~0.5.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you used floating-point division and not integer division. (Source: [cppreference: floating point arithmetic](https://en.cppreference.com/w/cpp/language/expressions))
+   How: remove the `#error`, rebuild, and run `ctest`. If you see 0.0 or 1.0, you likely used integer division.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   How: redirect outputs with `> file 2>&1` to capture errors.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

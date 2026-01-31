@@ -93,22 +93,27 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `run_with_timeout` in `learner/src/main.cpp` and state the two code paths.
    The function must return the task result if it completes in time, or return the fallback if it does not. The tests exercise both paths: a fast lambda that should return 7 and a slow lambda that should return -1. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
+   How: identify where the function returns, and label each return as "success" or "timeout" based on the future status.
    - **Expected result:** you can describe the success path and the timeout path in plain language.
 
 2) Launch the task with `std::async`.
    Use `std::async(std::launch::async, ...)` so the task runs asynchronously. Store the returned `std::future<int>` in a local variable. This future is the handle you will wait on. (Source: [cppreference: std::async](https://en.cppreference.com/w/cpp/thread/async))
+   How: replace the TODO with a single call to `std::async` using the provided callable and store it in `auto fut = ...;`.
    - **Expected result:** you have a valid future representing the running task.
 
 3) Wait for completion with `wait_for` and branch on status.
    Call `fut.wait_for(timeout)`. If the result is `std::future_status::ready`, call `fut.get()` and return it. Otherwise return the fallback. Do not call `get()` when the status is not ready. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
+   How: use an `if` statement on the status; return `fallback` in the `else` branch.
    - **Expected result:** the fast task returns 7 and the slow task returns -1.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the slow test returns 9 instead of -1, check that you used the timeout correctly and did not call `get()` unconditionally. (Source: [cppreference: std::future::wait_for](https://en.cppreference.com/w/cpp/thread/future/wait_for))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` for grading. (Source: [cppreference: std::async](https://en.cppreference.com/w/cpp/thread/async))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

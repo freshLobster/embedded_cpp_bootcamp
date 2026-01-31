@@ -18,8 +18,10 @@ Example (not your solution): CPU vector add.
 ```cpp
 std::vector<int> add_cpu(const std::vector<int>& a, const std::vector<int>& b) {
     std::vector<int> out;
+    // Reserve once to avoid repeated reallocations.
     out.reserve(a.size());
     for (size_t i = 0; i < a.size(); ++i) {
+        // Element-wise addition.
         out.push_back(a[i] + b[i]);
     }
     return out;
@@ -59,22 +61,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and define the CPU reference behavior.
    The function must return a vector where each element is the sum of the corresponding elements in `a` and `b`. This output is the baseline for GPU parity checks. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: write the expected output for the test inputs (1,2,3) and (4,5,6) so you can validate quickly.
    - **Expected result:** you can write the element-wise addition formula.
 
 2) Implement `add_cpu` with a single loop.
    Create an output vector, reserve capacity equal to `a.size()`, and push back `a[i] + b[i]` for each index. This avoids repeated reallocations and keeps the function deterministic. (Source: [cppreference: std::vector::reserve](https://en.cppreference.com/w/cpp/container/vector/reserve))
+   How: use a `size_t` loop over `a.size()` and push each sum into the output. Keep the body minimal so it mirrors what a GPU kernel would do.
    - **Expected result:** adding {1,2,3} and {4,5,6} yields {5,7,9}.
 
 3) Implement `exercise()` to validate the reference output.
    Construct two small vectors, call `add_cpu`, and verify the result values. Return 0 on success. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: check both the size and a couple of element values so you know the loop ran correctly.
    - **Expected result:** `exercise()` returns 0 when the output matches expected values.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that your loop bounds match the vector size and that you reserved capacity before pushing. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: remove `#error`, rebuild, and run `ctest`. If the output vector is empty, you likely forgot to push values.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html))
+   How: redirect outputs with `> file 2>&1` so you capture errors.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

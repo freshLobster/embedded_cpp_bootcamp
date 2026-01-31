@@ -18,10 +18,13 @@ Example (not your solution): a simple architecture probe.
 ```cpp
 std::string target_arch() {
 #if defined(__aarch64__)
+    // ARM64 target detected.
     return "aarch64";
 #elif defined(__x86_64__) || defined(_M_X64)
+    // x86_64 target detected.
     return "x86_64";
 #else
+    // Fallback when no known macro is present.
     return "unknown";
 #endif
 }
@@ -65,26 +68,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the expected outputs.
    The goal is to return a string describing the target architecture. The test fails if the result is "unknown", so your implementation must cover the expected targets. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: find the `target_arch()` stub and the list of macros in the comments. Decide which two or three architectures you will support in this exercise (x86_64 and aarch64 are required).
    - **Expected result:** you can list which architectures you will detect.
 
 2) Implement `target_arch()` with preprocessor checks.
    Use `#if defined(__aarch64__)` for ARM64, and `#elif defined(__x86_64__) || defined(_M_X64)` for x86_64. Return "unknown" only if none match. This ensures the test can identify the host or target. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: add preprocessor branches in the function body and return string literals. Keep the function pure (no logging) so it can be used in build scripts and tests.
    - **Expected result:** the function returns "x86_64" on typical WSL/Windows builds.
 
 3) Implement `exercise()` to validate the probe.
    Call `target_arch()` and return non-zero only if it returns "unknown". This makes the test a sanity check for your macro logic. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: store the string in a local variable, compare to `"unknown"`, and return 1 on failure. Keep the function tiny so output remains deterministic.
    - **Expected result:** `exercise()` returns 0 on a known architecture.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, verify that your macro names match the compiler you are using. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: remove `#error`, rebuild, then run `ctest`. If you still see "unknown", print the macro names from the compiler documentation or temporarily add `#ifdef` guards to verify which branch is active.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) (Optional) Cross-compile to aarch64.
    Configure with a toolchain or set `CMAKE_CXX_COMPILER=aarch64-linux-gnu-g++`, then rebuild. Run `strings` or `file` on the output binary to confirm the architecture. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: set `-DCMAKE_TOOLCHAIN_FILE=` or set the compiler directly, then rebuild. Use `file build_learner/ex01_cross_build` to verify the output architecture.
    - **Expected result:** the binary reports `aarch64` when cross-compiled.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. Save `file` output to `learner/artifacts/arch.txt` if you cross-compiled. (Source: [CMake toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html))
+   How: redirect command output with `> file 2>&1` so both stdout and stderr are preserved.
    - **Expected result:** artifacts exist with command output.
 
 ## 9) Verification

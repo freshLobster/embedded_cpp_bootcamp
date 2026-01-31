@@ -1,9 +1,10 @@
 // Solution: Efficient join with reserved capacity
 // This avoids repeated reallocations by reserving the final size once.
+// The function is intentionally small so its performance is easy to profile.
 
-#include <cassert>
-#include <string>
-#include <vector>
+#include <cassert> // assert() provides a minimal self-check.
+#include <string>  // std::string for concatenation.
+#include <vector>  // std::vector for input parts.
 
 std::string join_with_commas(const std::vector<std::string>& parts) {
     if (parts.empty()) return {};

@@ -1,9 +1,10 @@
 // Solution: Artifact manifest builder
 // Builds a deterministic JSON-like manifest string.
+// This simulates a CI summary file for simulation artifacts.
 
-#include <cassert>
-#include <string>
-#include <vector>
+#include <cassert> // assert() provides a minimal self-check.
+#include <string>  // std::string for building JSON-like output.
+#include <vector>  // std::vector for artifact list.
 
 std::string make_manifest(const std::vector<std::string>& artifacts) {
     std::string out = "{\"artifacts\":[";

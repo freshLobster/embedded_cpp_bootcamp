@@ -103,26 +103,32 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Inspect the `Buffer` interface in `learner/src/main.cpp` and restate the ownership model.
    The type owns heap memory via `std::unique_ptr<int[]>`, so it must be move-only. That means copy is deleted, move is defined, and moved-from objects must be safe to destroy and query. Write down what "safe" means here: `size()` should report 0 after a move, and `sum()` should return 0 because there are no elements. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: read the class definition and note each special member function. Mark which are deleted and which must be implemented, then write the expected post-move state.
    - **Expected result:** you can describe how a moved-from `Buffer` should behave.
 
 2) Implement the move constructor with explicit state transfer.
    Move the `unique_ptr` to transfer ownership of the heap array. Copy `size_` so the new object knows how many elements exist. Then set `other.size_ = 0` so the source reports an empty, valid state. This is the canonical move pattern for owning types. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   How: use a member-initializer list with `data_(std::move(other.data_))` and `size_(other.size_)`, then set `other.size_ = 0` in the body.
    - **Expected result:** moving a buffer transfers the array and empties the source.
 
 3) Implement move assignment in a clear, safe order.
    First check for self-assignment. Then move the `unique_ptr` into `*this`, copy `size_`, and set `other.size_ = 0`. Because `unique_ptr` handles the old memory automatically, you do not need to delete anything manually. The critical part is leaving the source in a valid empty state. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   How: inside `operator=`, perform the move and size copy, then reset `other.size_`. Keep the order consistent with the move constructor.
    - **Expected result:** move assignment transfers ownership and leaves the source safe to destroy.
 
 4) Implement `sum()` using the current `size_`.
    Iterate from `0` to `size_ - 1` and accumulate values. If `size_` is 0 (e.g., after a move), the loop should do nothing and return 0. This is how you make moved-from objects safe for simple queries. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   How: guard the loop with `for (size_t i = 0; i < size_; ++i)` and sum `data_[i]`. Return the accumulator.
    - **Expected result:** `sum()` returns 6 for `{1,2,3}` and 0 for an empty buffer.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If you see a failure, check whether you reset `other.size_` in both move operations and ensure `sum()` uses `size_` rather than a fixed count. (Source: [cppreference: Rule of Three/Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: remove the `#error` line, rebuild, and run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. These logs are required for grading evidence. (Source: [cppreference: std::unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

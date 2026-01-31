@@ -19,6 +19,7 @@ Example (not your solution): min/max scan with comments.
 int minv = std::numeric_limits<int>::max();
 int maxv = std::numeric_limits<int>::min();
 for (int v : samples) {
+    // Track the smallest and largest values seen so far.
     if (v < minv) minv = v;
     if (v > maxv) maxv = v;
 }
@@ -57,26 +58,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and restate the expected output.
    The function `compute_jitter` must return min, max, and span for a vector of samples. The test uses {10,12,11,15} and expects min=10, max=15, span=5. (Source: [cppreference: std::numeric_limits](https://en.cppreference.com/w/cpp/types/numeric_limits))
+   How: compute the expected values by hand and write them next to the test in `exercise()` so you can quickly sanity check your logic.
    - **Expected result:** you can calculate the expected values by hand.
 
 2) Initialize min/max with numeric limits.
    Set `minv` to `numeric_limits<int>::max()` and `maxv` to `numeric_limits<int>::min()` so any real sample will replace them. This is the standard pattern for min/max scanning. (Source: [cppreference: std::numeric_limits](https://en.cppreference.com/w/cpp/types/numeric_limits))
+   How: include `<limits>` and declare `int minv = std::numeric_limits<int>::max();` and `int maxv = std::numeric_limits<int>::min();` before the loop.
    - **Expected result:** the first sample always updates both min and max.
 
 3) Scan the samples and update min/max.
    Loop over the input vector and update `minv` and `maxv` when a sample is smaller or larger than the current extrema. Keep this loop simple and deterministic. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: write a range-based for loop: `for (int v : samples) { if (v < minv) minv = v; if (v > maxv) maxv = v; }`.
    - **Expected result:** after the loop, minv and maxv are correct.
 
 4) Compute span and return the result struct.
    `span = maxv - minv`. Return a `JitterStats{minv, maxv, span}`. This is the simple jitter metric used in the test. (Source: [cppreference: aggregate initialization](https://en.cppreference.com/w/cpp/language/aggregate_initialization))
+   How: compute span after the loop (not during), then return the aggregate. Make sure you return the values in the correct order.
    - **Expected result:** span is 5 for the test sample set.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, verify that you did not mix up min and max and that you computed span after scanning. (Source: [cppreference: std::numeric_limits](https://en.cppreference.com/w/cpp/types/numeric_limits))
+   How: remove the `#error` line, rebuild, and run `ctest`. If you see unexpected values, temporarily print `minv` and `maxv` to confirm the loop behavior.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [cppreference: std::numeric_limits](https://en.cppreference.com/w/cpp/types/numeric_limits))
+   How: redirect outputs with `> file 2>&1` to capture errors as well.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

@@ -1,10 +1,11 @@
 // Solution: Shared counter with atomic operations
 // Demonstrates a race-free update pattern for shared state.
+// This mirrors ISR/task updates on an MCU.
 
-#include <cassert>
-#include <atomic>
-#include <thread>
-#include <vector>
+#include <cassert> // assert() provides a minimal self-check.
+#include <atomic>  // std::atomic for race-free updates.
+#include <thread>  // std::jthread for scoped lifetime threads.
+#include <vector>  // std::vector for thread container.
 
 class SharedCounter {
 public:

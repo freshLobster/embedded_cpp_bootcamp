@@ -79,32 +79,44 @@ ctest --test-dir build_asan --output-on-failure
 
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and outline the API you need.
-   The TODO asks for a bounds-checked buffer and a small `exercise()` function. Write down the functions you will implement (constructor, write, read) and the contract for each (index must be < size). This makes the expected behavior explicit before you code. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
-   - **Expected result:** you can list the methods and their preconditions.
+   The TODOs describe a `SafeBuffer` class and an `exercise()` self-test. Before touching code, write down the required methods (constructor, `write`, `read`) and the contract for each (index must be `< size`). This prevents you from inventing behavior while you code and makes the buffer's invariants explicit. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: open the file, search for `TODO` and `#error`, and list each function that has a stub. Confirm that `exercise()` will call those functions; this is the harness the tests rely on.
+   - **Expected result:** you can state each method and its precondition without guessing.
 
-2) Implement a `SafeBuffer` class with internal storage.
-   Use `std::vector<int>` for storage. Implement a constructor that allocates `n` elements and initializes them to zero. This keeps the object in a valid, deterministic state even before any writes. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
-   - **Expected result:** constructing `SafeBuffer(3)` creates storage with size 3.
+2) Implement `SafeBuffer` storage so size is correct immediately.
+   Use `std::vector<int>` for storage and initialize it to `n` elements with value `0`. Do not use `reserve()`; it changes capacity but leaves size at 0, which would make bounds checks reject all indices. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: in the constructor, either use the member-initializer list `data_(n, 0)` or call `data_.assign(n, 0)` in the body. Verify that `size()` returns `n` by temporarily adding a debug `assert(data_.size() == n);`.
+   - **Expected result:** constructing `SafeBuffer(3)` yields `size() == 3`.
 
-3) Add bounds-checked `write` and `read`.
-   In both methods, use `assert(idx < data_.size())` before accessing the vector. Then perform the write or read. The key is that out-of-range access should fail fast in debug builds. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
-   - **Expected result:** valid indices work; invalid indices trigger an assertion in debug builds.
+3) Add bounds checks in `write` and `read`.
+   Both methods must enforce the same rule: `idx` is valid only when `idx < data_.size()`. This is a debug-time contract check; you are intentionally making invalid access fail fast. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: place `assert(idx < data_.size());` as the first line in each method, then perform the access using `data_[idx]`. Use `size_t` for indices to match `vector::size()` and avoid signed/unsigned warnings.
+   - **Expected result:** valid indices work; invalid indices trigger a clear assertion in debug builds.
 
-4) Implement `exercise()` to validate the contract.
-   Create a buffer of size 3, write values to indices 0, 1, 2, and read them back to verify correctness. Return 0 on success and non-zero on failure. This makes the test deterministic and self-contained. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
-   - **Expected result:** `exercise()` returns 0 when read/write works correctly.
+4) Implement `exercise()` as a deterministic self-check.
+   The test must not depend on random values or external input. Use a small buffer, write known values, then read them back and compare to the expected results. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: create `SafeBuffer buf(3)`, write values 1, 2, 3 to indices 0, 1, 2, then read them back. Return a unique non-zero code for each failure so the exact failure is obvious from logs.
+   - **Expected result:** `exercise()` returns 0 when all reads match expected values.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
-   If the test fails, check that you used `size_t` consistently and that your bounds check uses `<` rather than `<=`. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   The `#error` is there to force you to finish the implementation before compiling. Only remove it after `SafeBuffer` and `exercise()` are complete. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: re-run `cmake --build build_learner` and then `ctest --test-dir build_learner --output-on-failure`. If you see a failure, re-check the bounds check and ensure you did not use `<=` by mistake. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Run ASan to confirm no memory errors remain (optional but recommended).
-   Build with `-fsanitize=address` and run the tests. If you still have out-of-bounds access, ASan will report it immediately with a stack trace. Save that output as part of your artifacts if it appears. (Source: [LLVM AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html))
+   ASan instruments your binary to detect out-of-bounds access. Even if the tests pass, ASan gives stronger evidence that your contract is enforced. (Source: [LLVM AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html))
+   How: configure a separate build with ASan enabled, for example:
+   `cmake -S learner -B build_asan -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer"`
+   Then build and run `ctest --test-dir build_asan --output-on-failure`.
    - **Expected result:** ASan reports no errors for the corrected implementation.
 
-7) Capture artifacts.
-   Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. If you ran ASan, save the output to `learner/artifacts/asan.log`. (Source: [LLVM AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html))
-   - **Expected result:** all required logs exist in the artifacts folder.
+7) Capture artifacts for grading and review.
+   You need logs for build, test, and optional ASan output. These show evidence that you ran the correct commands. (Source: [LLVM AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html))
+   How: redirect outputs to `learner/artifacts/`:
+   `cmake --build build_learner > learner/artifacts/build.log 2>&1`
+   `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`
+   `ctest --test-dir build_asan --output-on-failure > learner/artifacts/asan.log 2>&1` (if you ran ASan).
+   - **Expected result:** all required logs exist in the artifacts folder with readable content.
 
 ## 9) Verification
 - `ctest --test-dir build_learner --output-on-failure` must report `100% tests passed`.

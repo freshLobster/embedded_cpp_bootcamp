@@ -91,26 +91,32 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `parse_contract` in `learner/src/main.cpp` and restate the contract format.
    The contract is `name:type:rate`. You must parse exactly three fields separated by `:` and reject anything else. That means `"invalid"` (no delimiters) and `"name:type"` (missing rate) must return false. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   How: write the format on paper and list two valid and two invalid examples so you can compare against your parser behavior.
    - **Expected result:** you can describe the valid format and list at least two invalid examples.
 
 2) Split the input into three `string_view` segments.
    Find the first `:` and the second `:`. Use `substr` to create views for the name, type, and rate segments without allocating. This keeps parsing fast and avoids temporary strings until you know the input is valid. (Source: [cppreference: std::string_view::substr](https://en.cppreference.com/w/cpp/string/basic_string_view/substr))
+   How: call `find(':')` for the first delimiter and then `find(':', first+1)` for the second, then build `substr` views for each segment.
    - **Expected result:** you can print the three segments for a valid input like `sensor.raw:float:50`.
 
 3) Validate each segment before copying.
    Check that `name` and `type` are non-empty. For the rate, iterate over each character and ensure it is a digit, building the integer value as you go. Reject any non-digit characters and any rate value <= 0. This strict validation prevents silent misconfiguration. (Source: [cppreference: std::isdigit](https://en.cppreference.com/w/cpp/string/byte/isdigit))
+   How: loop over the rate segment with `for (char c : rate_view)` and build `rate = rate * 10 + (c - '0')`, returning false on any non-digit.
    - **Expected result:** inputs like `sensor.raw:float:0` and `sensor.raw:float:5ms` return false.
 
 4) Assign validated fields into the output struct.
    After validation, copy the `string_view` segments into `std::string` fields of `TopicContract`, then set `rate_hz` to the parsed integer. This is the only point where you allocate and copy, and it happens only for valid inputs. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: assign `out.name = std::string(name_view); out.type = std::string(type_view); out.rate_hz = rate;` and return true.
    - **Expected result:** the output struct fields match the parsed input exactly.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, print the parsed fields in a debugger or temporarily add logging to confirm your delimiters and rate parsing. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` to satisfy grading requirements. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

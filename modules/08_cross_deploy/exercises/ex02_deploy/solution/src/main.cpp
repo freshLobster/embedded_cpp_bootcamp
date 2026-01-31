@@ -1,8 +1,9 @@
 // Solution: scp command builder
 // Constructs a deterministic deployment command string.
+// The output is pure text to keep the exercise platform-neutral.
 
-#include <cassert>
-#include <string>
+#include <cassert> // assert() provides a minimal self-check.
+#include <string>  // std::string for concatenation.
 
 std::string make_scp_cmd(const std::string& user, const std::string& host,
                          const std::string& local, const std::string& remote) {

@@ -64,26 +64,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and define the dot-product contract.
    The function must take two vectors of equal length and return the sum of element-wise products. This is a deterministic workload: the same inputs must always produce the same output. (Source: [cppreference: std::vector](https://en.cppreference.com/w/cpp/container/vector))
+   How: write the formula `sum_{i=0..n-1} a[i] * b[i]` in your notes. Then confirm the test inputs in `exercise()` match that formula.
    - **Expected result:** you can write the dot-product formula in one line.
 
 2) Implement `dot_product(const std::vector<int>&, const std::vector<int>&)`.
    Use a for-loop over indices and accumulate `a[i] * b[i]` into a local sum. Keep it simple and avoid extra allocations. This is the baseline you will profile. (Source: [cppreference: std::vector::operator[]](https://en.cppreference.com/w/cpp/container/vector/operator_at))
-   - **Expected result:** dot_product({1,2,3},{4,5,6}) returns 32.
+   How: declare `int sum = 0;`, then loop with `for (size_t i = 0; i < a.size(); ++i)` and add `a[i] * b[i]` to `sum`. Return `sum` at the end. Avoid any temporary vectors or copies.
+   - **Expected result:** `dot_product({1,2,3},{4,5,6})` returns 32.
 
 3) Implement `exercise()` to validate correctness.
    Create two small vectors with known values, call `dot_product`, and compare against the expected result. Return 0 for success and non-zero for failure. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: keep the vectors tiny (3 elements) so you can compute the expected answer by hand. Use a clear return code to indicate failure so debugging is immediate.
    - **Expected result:** `exercise()` returns 0 when dot_product is correct.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check for off-by-one errors and confirm you used `a.size()` as the loop bound. (Source: [cppreference: std::vector::size](https://en.cppreference.com/w/cpp/container/vector/size))
+   How: remove the `#error` line, rebuild with `cmake --build build_learner`, then run `ctest --test-dir build_learner --output-on-failure`. If the value is 31 or 33, your loop bounds or arithmetic are likely wrong.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Run a baseline perf measurement (optional).
    Build with `-O2` if desired, then run `perf stat ./build_learner/ex01_perf_baseline`. Record the output so you can compare later. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: use a release-like build (`-O2`) to reduce noise, then save the output to a file so you can compare future optimizations against this baseline.
    - **Expected result:** perf prints cycles/instructions without errors.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log`, test output to `learner/artifacts/ctest.log`, and perf output to `learner/artifacts/perf_stat.txt` if you ran perf. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: redirect the command output with `> file 2>&1` so your logs capture both stdout and stderr.
    - **Expected result:** all expected log files exist.
 
 ## 9) Verification

@@ -1,8 +1,9 @@
 // Solution: Nsight Systems marker string
 // Provides a deterministic range label for profiling exercises.
+// The string is human-readable so it is easy to spot in timelines.
 
-#include <cassert>
-#include <string>
+#include <cassert> // assert() provides a minimal self-check.
+#include <string>  // std::string for the marker label.
 
 std::string profile_markers() {
     // In real code this could correspond to a profiling range name.

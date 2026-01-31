@@ -18,6 +18,7 @@ Example (not your solution): append a checksum field.
 ```cpp
 unsigned checksum(std::string_view payload) {
     unsigned sum = 0;
+    // Sum each byte and wrap to 8 bits.
     for (unsigned char c : payload) sum = (sum + c) & 0xFFu;
     return sum;
 }
@@ -56,26 +57,32 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and define the frame format.
    The frame format is `<payload>|CS=<checksum>`. The checksum is computed over the payload only, not including the checksum field. This is the contract your encoder and decoder must follow. (Source: [RFC 1071](https://www.rfc-editor.org/rfc/rfc1071))
+   How: choose a sample payload (e.g., "HELLO") and write the expected frame string with a placeholder checksum so you can verify formatting before worrying about values.
    - **Expected result:** you can write the full frame string for a sample payload.
 
 2) Implement `checksum(std::string_view payload)`.
    Iterate over the payload bytes and compute a simple sum modulo 256. Use `unsigned char` to avoid sign issues. This matches the solution's expected checksum behavior. (Source: [RFC 1071](https://www.rfc-editor.org/rfc/rfc1071))
+   How: declare `unsigned sum = 0;` then loop `for (unsigned char c : payload)` and update `sum = (sum + c) & 0xFFu;`. Return `sum`.
    - **Expected result:** checksum("HELLO") returns a deterministic integer.
 
 3) Implement `encode_frame(std::string_view payload)`.
    Concatenate the payload, a delimiter (`|CS=`), and the decimal checksum value. This produces the wire frame that the receiver will validate. (Source: [cppreference: std::string](https://en.cppreference.com/w/cpp/string/basic_string))
+   How: compute `unsigned cs = checksum(payload);` then build the string using `std::string(payload) + "|CS=" + std::to_string(cs);`.
    - **Expected result:** encode_frame("HELLO") returns something like "HELLO|CS=...".
 
 4) Implement `decode_frame(std::string_view frame, std::string& payload_out)`.
    Find the last occurrence of `|CS=`. If it is missing, return false. Split into payload and checksum text, parse the checksum, and compare it to the computed checksum of the payload. If they match, assign the payload to `payload_out` and return true. (Source: [cppreference: std::string_view::rfind](https://en.cppreference.com/w/cpp/string/basic_string_view/rfind))
+   How: use `auto pos = frame.rfind("|CS=");` then `payload = frame.substr(0, pos)` and `cs_str = frame.substr(pos + 4)`. Parse `cs_str` with `std::stoul`, compare, then assign `payload_out`.
    - **Expected result:** valid frames decode successfully; corrupted frames return false.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you used `rfind` (not `find`) so payloads containing `|CS=` are handled safely. (Source: [cppreference: std::string_view::rfind](https://en.cppreference.com/w/cpp/string/basic_string_view/rfind))
+   How: remove the `#error`, rebuild, and run `ctest`. If the checksum mismatches, print the parsed payload and checksum temporarily to see what went wrong.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [RFC 1071](https://www.rfc-editor.org/rfc/rfc1071))
+   How: redirect output with `> file 2>&1` so errors are captured.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

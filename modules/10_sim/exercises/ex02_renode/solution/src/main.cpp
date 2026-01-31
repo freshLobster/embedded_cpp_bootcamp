@@ -1,8 +1,9 @@
 // Solution: Peripheral count from log
 // Counts how many times a token appears in a log string.
+// This mirrors parsing a Renode console log for device lines.
 
-#include <cassert>
-#include <string_view>
+#include <cassert>     // assert() provides a minimal self-check.
+#include <string_view> // std::string_view for scanning.
 
 int count_peripherals(std::string_view log) {
     int count = 0;

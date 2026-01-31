@@ -16,9 +16,10 @@ LatencyStats compute_stats(std::vector<int> samples) {
     if (samples.empty()) {
         return {};
     }
-    // Use (size - 1) so the max index is valid for 0-based arrays.
+    // Use (size - 1) for median, and clamp p95 to the last element.
     const auto idx50 = static_cast<size_t>((samples.size() - 1) * 0.50);
-    const auto idx95 = static_cast<size_t>((samples.size() - 1) * 0.95);
+    size_t idx95 = static_cast<size_t>(samples.size() * 0.95);
+    if (idx95 >= samples.size()) idx95 = samples.size() - 1;
     return {samples[idx50], samples[idx95]};
 }
 

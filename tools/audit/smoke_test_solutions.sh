@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exercises=(
-  "modules/01_foundations/exercises/ex01_scope_guard"
-  "modules/06_debugging/exercises/ex01_asan"
-  "modules/11_cuda_basics/exercises/ex01_env"
-)
+mapfile -t exercises < <(find modules -path "*/exercises/ex*/solution" -print | sort)
 
-for ex in "${exercises[@]}"; do
+for sol in "${exercises[@]}"; do
+  ex="$(dirname "$sol")"
   echo "== Smoke test: $ex (solution)"
   pushd "$ex" >/dev/null
   rm -rf build_solution

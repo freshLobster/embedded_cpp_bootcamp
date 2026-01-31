@@ -1,4 +1,6 @@
 #pragma once
+
+// Reference solution entry points for Nsight marker exercise.
 int exercise();
 int exercise_cpu();
 #ifdef ENABLE_CUDA

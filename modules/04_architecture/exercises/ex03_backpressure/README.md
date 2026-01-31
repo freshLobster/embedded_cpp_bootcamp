@@ -92,22 +92,27 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `BoundedQueue` in `learner/src/main.cpp` and restate the policy.
    This queue has a fixed capacity and a drop counter. When full, it must drop the new item (not block) and increment the counter. When not full, it should accept items in FIFO order. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
+   How: locate the member variables `cap_`, `drops_`, and `q_`, then map each to the expected behavior (capacity check, drop accounting, FIFO storage).
    - **Expected result:** you can explain the behavior on push when the queue is full.
 
 2) Implement `try_push` with explicit drop accounting.
    Compare `q_.size()` to `cap_`. If the queue is at capacity, increment `drops_` and return false without inserting. Otherwise push the new value with `push_back` and return true. This models a backpressure policy that sacrifices data instead of latency. (Source: [cppreference: std::deque::push_back](https://en.cppreference.com/w/cpp/container/deque/push_back))
+   How: write `if (q_.size() >= cap_) { ++drops_; return false; } q_.push_back(value); return true;`.
    - **Expected result:** pushing a third item into a capacity-2 queue fails and increments `drops_`.
 
 3) Implement `try_pop` for deterministic FIFO order.
    If the queue is empty, return false. Otherwise read the front value, pop it, and return true. This ensures the oldest element is always dispatched first. (Source: [cppreference: std::deque::pop_front](https://en.cppreference.com/w/cpp/container/deque/pop_front))
+   How: use `q_.front()` to read, then `q_.pop_front()` to remove, and return true.
    - **Expected result:** the first pop returns the earliest pushed value.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, verify that your drop counter increments only on failed pushes and that you did not mistakenly drop existing items. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` for grading. (Source: [cppreference: std::deque](https://en.cppreference.com/w/cpp/container/deque))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

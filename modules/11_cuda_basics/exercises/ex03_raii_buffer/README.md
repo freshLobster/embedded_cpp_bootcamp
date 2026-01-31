@@ -18,10 +18,13 @@ Example (not your solution): move-only buffer pattern.
 ```cpp
 class Buffer {
 public:
+    // Allocate n elements; nullptr for size 0.
     explicit Buffer(size_t n) : data_(n ? new int[n]() : nullptr), size_(n) {}
+    // Release owned memory on destruction.
     ~Buffer() { delete[] data_; }
     Buffer(const Buffer&) = delete;
     Buffer& operator=(const Buffer&) = delete;
+    // Move steals ownership and clears the source.
     Buffer(Buffer&& other) noexcept : data_(other.data_), size_(other.size_) {
         other.data_ = nullptr;
         other.size_ = 0;
@@ -65,30 +68,37 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the ownership rules.
    The buffer owns raw memory. That means you must define a destructor, delete copy operations, and implement move operations that transfer ownership safely. (Source: [cppreference: Rule of Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: note that the class holds a raw pointer and size. Any copy would duplicate the pointer and cause double-free. That is why copy is deleted.
    - **Expected result:** you can explain why copying is disallowed.
 
 2) Implement the constructor and destructor.
    Allocate `n` elements when `n > 0` and set the pointer to `nullptr` when `n == 0`. In the destructor, delete the array and set the pointer to null if needed. This ensures deterministic cleanup. (Source: [C++ Core Guidelines, RAII](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: in the constructor, use `new int[n]()` for zero-initialization. In the destructor, call `delete[] data_` and then reset `data_` to `nullptr` and `size_` to 0.
    - **Expected result:** a buffer of size 0 has a null pointer and is safe to destroy.
 
 3) Delete copy constructor and copy assignment.
    Explicitly `= delete` both operations so the compiler cannot generate them. This prevents double-free errors when two objects believe they own the same buffer. (Source: [cppreference: Rule of Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: leave the deletions as-is in the class definition; do not re-enable copying.
    - **Expected result:** attempts to copy fail at compile time.
 
 4) Implement move constructor and move assignment.
    Transfer the pointer and size, then null out the source pointer and set its size to 0. In move assignment, release any existing memory before taking ownership of the new one. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   How: in the move constructor, copy `other.data_` and `other.size_`, then set `other.data_ = nullptr` and `other.size_ = 0`. In move assignment, first `delete[] data_`, then steal from `other` and reset `other`.
    - **Expected result:** moved-from objects are empty but safe to destroy.
 
 5) Implement accessors (`size()` and `data()`).
    Return the current size and raw pointer. These are needed for tests and would be required for any wrapper that exposes CUDA buffers. (Source: [C++ Core Guidelines, RAII](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: keep them simple and `constexpr`-free. They should not allocate or modify the object.
    - **Expected result:** `size()` returns the expected size and `data()` is non-null when size > 0.
 
 6) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that move assignment deletes the old buffer and that the moved-from object is reset. (Source: [cppreference: Rule of Five](https://en.cppreference.com/w/cpp/language/rule_of_three))
+   How: remove `#error`, rebuild, and run `ctest`. If the moved-from size is non-zero, you likely forgot to reset it.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 7) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [C++ Core Guidelines, RAII](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines))
+   How: redirect outputs with `> file 2>&1` so any errors are captured.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

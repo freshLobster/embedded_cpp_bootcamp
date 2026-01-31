@@ -18,9 +18,12 @@ Example (not your solution): atomic counter with comments.
 ```cpp
 class SharedCounter {
 public:
+    // Atomic increment (relaxed ordering is enough for a simple counter).
     void increment() { value_.fetch_add(1, std::memory_order_relaxed); }
+    // Atomic load of the current value.
     int value() const { return value_.load(std::memory_order_relaxed); }
 private:
+    // Shared state protected by atomic operations.
     std::atomic<int> value_{0};
 };
 ```
@@ -58,22 +61,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the shared state.
    The counter must be updated by multiple threads concurrently. This is exactly the kind of shared state that is unsafe without atomic operations. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: locate the `SharedCounter` class and the `value_` member. This is the state that multiple threads will touch.
    - **Expected result:** you can describe why a plain `int` would lose updates.
 
 2) Implement `SharedCounter` using `std::atomic<int>`.
    Store the counter in an atomic and provide `increment()` and `value()` methods. Use `fetch_add(1)` and `load()` so operations are race-free. (Source: [cppreference: std::atomic::fetch_add](https://en.cppreference.com/w/cpp/atomic/atomic/fetch_add))
+   How: in `increment()`, call `value_.fetch_add(1, std::memory_order_relaxed);`. In `value()`, return `value_.load(std::memory_order_relaxed);`. Relaxed ordering is enough for a pure counter.
    - **Expected result:** increments are not lost under concurrency.
 
 3) Implement `exercise()` to validate the counter.
    Spawn multiple threads that call `increment()` many times. After joining, check that the final count equals the expected number of increments. (Source: [cppreference: std::thread](https://en.cppreference.com/w/cpp/thread/thread))
+   How: keep the thread count and iteration count small but deterministic (e.g., 4 threads * 1000 increments). This makes the expected total clear.
    - **Expected result:** the final value equals threads * iterations.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check that you used atomic operations in both methods and that all threads are joined. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: remove the `#error` line, rebuild, and run `ctest`. If the result is less than expected, your atomic operations are missing or not used.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: redirect output with `> file 2>&1` so both stdout and stderr are captured.
    - **Expected result:** logs exist and contain your command output.
 
 ## 9) Verification

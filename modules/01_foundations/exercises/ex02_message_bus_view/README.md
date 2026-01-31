@@ -108,26 +108,32 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the ownership boundary.
    `MessageBus` owns the `std::vector<std::string>`; `BusView` is only a non-owning lens. That means `BusView` must never allocate or copy, and it must never allow mutation. If you returned `std::string` or a non-const reference, you would either copy or allow modification, both of which violate the contract. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: draw a simple diagram showing `MessageBus` owning the vector and `BusView` pointing to it. Note that the view must become invalid if the bus is destroyed.
    - **Expected result:** you can explain, in one sentence, why a view must never outlive the bus.
 
 2) Implement `MessageBus::subscribe` to store names with explicit ownership.
    The parameter is passed by value so the caller can pass an rvalue or lvalue. Inside, move it into `subscribers_` with `push_back(std::move(name))` so the bus becomes the sole owner of the string. This mirrors real systems where message metadata is owned by the bus and should not be duplicated. (Source: [cppreference: std::move](https://en.cppreference.com/w/cpp/utility/move))
+   How: implement the function body in one line: `subscribers_.push_back(std::move(name));` and do not return anything.
    - **Expected result:** after subscribing, the bus owns the string and no extra copies are made.
 
 3) Implement `MessageBus::view` and `BusView::size` with null safety.
    `view()` should return `BusView(&subscribers_)`. In `BusView::size`, check `subs_` for null and return 0 if it is null. This makes the view safe even if a caller constructs a default view or if a future API returns an empty view. (Source: [cppreference: std::span](https://en.cppreference.com/w/cpp/container/span))
+   How: in `view()`, return a `BusView` constructed with the address of the vector. In `size()`, use `return subs_ ? subs_->size() : 0;`.
    - **Expected result:** `view.size()` is correct and never crashes when the view is empty.
 
 4) Implement `BusView::at` to return `std::string_view`.
    Access the string in the vector and return a `string_view` that refers to it. Do not return `std::string` or a mutable reference. This ensures zero-copy, read-only access and preserves the bus's ownership boundary. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: return `std::string_view((*subs_)[idx])` (after ensuring `subs_` is non-null in your logic or by relying on the test inputs).
    - **Expected result:** the returned view compares equal to the stored name but does not allocate.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If compilation fails, double-check that your method signatures match the declarations and that you did not return a temporary `std::string` from `at`. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log` so grading can verify your work. (Source: [cppreference: std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

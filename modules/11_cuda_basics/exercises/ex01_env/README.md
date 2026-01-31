@@ -18,8 +18,10 @@ Example (not your solution): compile-time CUDA check.
 ```cpp
 constexpr bool cuda_available() {
 #if defined(__CUDACC__)
+    // NVCC defines this macro when compiling CUDA code.
     return true;
 #else
+    // Non-CUDA toolchains fall back to false.
     return false;
 #endif
 }
@@ -63,22 +65,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and locate the CUDA detection function.
    The exercise expects a compile-time check, not a runtime device query. Your implementation should rely on `__CUDACC__` which is defined only when NVCC is compiling the translation unit. (Source: [CUDA NVCC documentation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html))
+   How: find the `constexpr bool cuda_available()` stub and note the comment about `__CUDACC__`. This is the macro you will use.
    - **Expected result:** you can explain the difference between build-time and runtime detection.
 
 2) Implement `cuda_available()` using preprocessor checks.
    Use `#if defined(__CUDACC__)` to return true and false otherwise. Keep the function `constexpr` so it can be evaluated at compile time. (Source: [CUDA NVCC documentation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html))
+   How: add a preprocessor branch inside the function body. Return `true` under `__CUDACC__`, and `false` under `#else`.
    - **Expected result:** the function returns true only when compiled with NVCC.
 
 3) Implement `exercise()` to validate the check.
    Compare `cuda_available()` against itself as a sanity check and return 0 if consistent. This is a simple guard that ensures the function compiles in both modes. (Source: [CUDA NVCC documentation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html))
+   How: leave the logic minimal so the test does not depend on actual GPU hardware.
    - **Expected result:** `exercise()` returns 0 regardless of CUDA availability.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, ensure you included the preprocessor logic and that the function is `constexpr`. (Source: [CUDA NVCC documentation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html))
+   How: remove the `#error`, rebuild, and run `ctest`. If the code fails to compile under the non-CUDA toolchain, the preprocessor block may be malformed.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. If you verified NVCC, note the version in `learner/artifacts/nvcc_version.txt`. (Source: [CUDA NVCC documentation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html))
+   How: redirect outputs with `> file 2>&1` so you capture errors as well as normal output.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

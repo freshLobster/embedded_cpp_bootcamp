@@ -1,8 +1,9 @@
 // Solution: Boot log marker check
 // Scans a log string for a "Boot OK" marker.
+// This mirrors a simple simulator smoke test.
 
-#include <cassert>
-#include <string_view>
+#include <cassert>     // assert() provides a minimal self-check.
+#include <string_view> // std::string_view for log scanning.
 
 bool boot_ok(std::string_view log) {
     // Return true only if the marker substring appears.

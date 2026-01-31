@@ -97,22 +97,27 @@ ctest --test-dir build_solution -C Debug --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and locate the shared state.
    The `Counter` holds a `std::atomic<int>` named `value_`. Every thread in the test calls `increment()` many times, so this is the contested shared variable. Your implementation must guarantee that no increments are lost. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: highlight the `value_` member and follow how `exercise()` spawns threads that call `increment()`.
    - **Expected result:** you can explain why a plain `int` would lose updates under this workload.
 
 2) Implement `Counter::increment()` using `fetch_add`.
    `fetch_add(1)` performs an atomic read-modify-write that is indivisible. That means each thread's increment is applied exactly once even when many threads update concurrently. Do not use `value_++` because the test is designed to catch lost increments. (Source: [cppreference: std::atomic::fetch_add](https://en.cppreference.com/w/cpp/atomic/atomic/fetch_add))
+   How: replace the stub with `value_.fetch_add(1, std::memory_order_relaxed);` to keep the code minimal and deterministic.
    - **Expected result:** each thread contributes exactly `kIters` increments.
 
 3) Implement `Counter::value()` using `load`.
    `load()` reads the atomic value safely. This avoids torn reads and ensures the returned value reflects the completed increments. This is the value the test checks at the end. (Source: [cppreference: std::atomic::load](https://en.cppreference.com/w/cpp/atomic/atomic/load))
+   How: return `value_.load(std::memory_order_relaxed);` and do not add any extra logic.
    - **Expected result:** the final value equals `kThreads * kIters`.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, check that you used atomic operations in both methods and that you did not accidentally shadow `value_` with a local variable. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: remove the `#error` line, rebuild, then run `ctest --test-dir build_learner --output-on-failure`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Redirect build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. These logs are required evidence for grading. (Source: [cppreference: std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic))
+   How: run `cmake --build build_learner > learner/artifacts/build.log 2>&1` and `ctest --test-dir build_learner --output-on-failure > learner/artifacts/ctest.log 2>&1`.
    - **Expected result:** both log files exist and contain the command output.
 
 ## 9) Verification

@@ -19,7 +19,9 @@ Example (not your solution): count occurrences.
 int count = 0;
 size_t pos = 0;
 while ((pos = log.find(token, pos)) != std::string_view::npos) {
+    // Found one token occurrence; count it.
     ++count;
+    // Advance past the token to avoid infinite loops.
     pos += token.size();
 }
 ```
@@ -57,22 +59,27 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the token to count.
    The log parsing function looks for a specific substring (e.g., "peripheral"). Your job is to count every occurrence in the log string. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   How: write down the exact token string so you do not accidentally change its spelling or casing.
    - **Expected result:** you can name the token and explain why it is important.
 
 2) Implement a loop that repeatedly calls `find`.
    Start at position 0, call `find(token, pos)`, and if found, increment the count and advance `pos` by `token.size()`. This avoids infinite loops and counts non-overlapping occurrences. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   How: keep the `pos` variable as `size_t`, and update it to `pos + token.size()` after each match so the next search continues after the current token.
    - **Expected result:** the counter increments once per token occurrence.
 
 3) Implement `exercise()` to validate the count.
    Use a short log string containing two "peripheral" lines and ensure the function returns 2. Return 0 for success. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: keep the test string tiny and explicit so it is easy to reason about and debug.
    - **Expected result:** `exercise()` returns 0.
 
 4) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If tests fail, check your loop increment and ensure you are not skipping or double-counting occurrences. (Source: [cppreference: std::string_view::find](https://en.cppreference.com/w/cpp/string/basic_string_view/find))
+   How: remove the `#error`, rebuild, and run `ctest`. If the count is off by 1, check the `pos` update inside your loop.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 5) Capture artifacts.
    Save build output to `learner/artifacts/build.log` and test output to `learner/artifacts/ctest.log`. (Source: [Renode documentation](https://renode.readthedocs.io/))
+   How: redirect outputs with `> file 2>&1` so both stdout and stderr are captured.
    - **Expected result:** artifacts exist and contain your outputs.
 
 ## 9) Verification

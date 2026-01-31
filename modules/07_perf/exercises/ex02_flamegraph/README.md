@@ -16,7 +16,9 @@ Flamegraphs visualize stack traces by collapsing identical call paths. Even a sm
 
 Example (not your solution): a call chain with comments.
 ```cpp
+// Lowest-level work: deterministic arithmetic.
 int work(int x) { return x * 2; }
+// Each level adds depth for profiling stacks.
 int level3(int x) { return work(x + 1); }
 int level2(int x) { return level3(x + 1); }
 int level1(int x) { return level2(x + 1); }
@@ -60,30 +62,37 @@ ctest --test-dir build_solution --output-on-failure
 ## 8) Step-by-step implementation instructions
 1) Read `learner/src/main.cpp` and identify the required call chain.
    The TODO asks for a multi-level call chain. This means at least three nested function calls that are easy to see in a backtrace. Your goal is to build a predictable stack shape, not a complex algorithm. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: list the functions in order (`level1` -> `level2` -> `level3` -> `work`) and decide how each function modifies the input so you can predict the final value.
    - **Expected result:** you can name each function and the order they are called.
 
 2) Implement the lowest-level `work(int)` function first.
    Keep it simple: return `x * 2` or another deterministic computation. This makes it easy to reason about the expected result when called from higher levels. (Source: [cppreference: expressions](https://en.cppreference.com/w/cpp/language/expressions))
+   How: write the arithmetic in one line and avoid loops. The goal is to make the cost predictable, not to optimize.
    - **Expected result:** `work(3)` returns 6.
 
 3) Build the call chain with `level1`, `level2`, `level3`.
    Each level should increment the input and call the next level, eventually calling `work`. This creates a predictable call stack for profiling tools. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: implement `level3(x)` as `return work(x + 1);`, then `level2(x)` as `return level3(x + 1);`, and `level1(x)` as `return level2(x + 1);`. This creates three frames plus the work function.
    - **Expected result:** `level1(1)` returns the expected final value.
 
 4) Implement `exercise()` to validate the chain.
    Call `level1(1)` and verify the output matches the expected value. Return 0 on success and non-zero on failure. (Source: [cppreference: assert](https://en.cppreference.com/w/cpp/error/assert))
+   How: compute the expected value by hand (for the suggested chain, `level1(1)` should evaluate to 8) and compare against that constant.
    - **Expected result:** `exercise()` returns 0.
 
 5) Remove `#error TODO_implement_exercise`, rebuild, and run tests.
    If the test fails, check each function's arithmetic and the order of calls. (Source: [cppreference: expressions](https://en.cppreference.com/w/cpp/language/expressions))
+   How: remove `#error`, rebuild, and run `ctest`. If the value is off by 1 or 2, a single level likely failed to add `+1`.
    - **Expected result:** `ctest` reports `100% tests passed`.
 
 6) Generate a perf profile (optional).
    Run `perf record -g ./build_learner/ex02_flamegraph` and then `perf report` to view the call stack. If you have FlameGraph tools, you can convert the stack data into a flamegraph. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: confirm the stack shows `level1`, `level2`, `level3`, and `work` frames. This is the primary evidence the call chain is working as intended.
    - **Expected result:** the call chain appears in the report.
 
 7) Capture artifacts.
    Save build output to `learner/artifacts/build.log`, test output to `learner/artifacts/ctest.log`, and perf output to `learner/artifacts/perf_report.txt` if you ran perf. (Source: [perf wiki](https://perf.wiki.kernel.org/index.php/Main_Page))
+   How: redirect command output with `> file 2>&1` so the logs include errors as well as normal output.
    - **Expected result:** artifacts exist and contain your command outputs.
 
 ## 9) Verification

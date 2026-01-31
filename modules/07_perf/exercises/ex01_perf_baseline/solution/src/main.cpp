@@ -1,8 +1,9 @@
 // Solution: Dot product baseline
 // This provides a deterministic workload for perf measurements.
+// The goal is correctness and repeatability, not extreme optimization.
 
-#include <cassert>
-#include <vector>
+#include <cassert> // assert() provides a simple correctness check.
+#include <vector>  // std::vector holds the inputs.
 
 int dot_product(const std::vector<int>& a, const std::vector<int>& b) {
     int sum = 0;
@@ -18,6 +19,7 @@ int dot_product(const std::vector<int>& a, const std::vector<int>& b) {
 int exercise() {
     std::vector<int> a{1,2,3};
     std::vector<int> b{4,5,6};
+    // Known result: 1*4 + 2*5 + 3*6 = 32.
     if (dot_product(a,b) != 32) {
         return 1;
     }
